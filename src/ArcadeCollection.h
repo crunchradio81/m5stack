@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Seven real playable games in the ARCADE SD firmware collection.
 // Stock K132 keyboard and 240x135 display; no PSRAM or add-ons.
 #include <Arduino.h>
@@ -6,7 +7,8 @@
 #include "core/ArcadeCore.h"
 class ArcadeCollection {
 public:
-    void begin(){mode_=-1;cursor_=0;dirty_=true;}
+    void begin(){
+        SPI.begin(40,39,14,12);SD.begin(12,SPI,10000000);mode_=-1;cursor_=0;dirty_=true;}
     void exit(){}
     void poll(){
         if(mode_==0&&snake_.alive()&&millis()-lastTick_>=170) {
@@ -64,7 +66,13 @@ public:
     void render() {
         dirty_=false;
         auto& d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,white=0xffff,sel=0x2673,cyan=0x05ff,green=0x5fe9,red=0xf926;
+        const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        white=p.text,
+        sel=p.selected,
+        cyan=p.accent,
+        green=p.good,
+        red=p.warning;
         d.fillScreen(bg);d.fillRect(0,0,240,23,0x10c4);
         d.setTextColor(white,0x10c4);d.setCursor(5,7);
         d.print(mode_<0?"RETRO ARCADE":name(mode_));

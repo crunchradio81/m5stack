@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Five SD-backed pocket office applications: To-do, Contacts, Expenses,
 // Journal, Manual Calendar. ASCII and bounded records; no clock/GPS claims.
 #include <Arduino.h>
@@ -92,8 +93,14 @@ public:
     void render(){
         dirty_=false;
         auto& d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,
-                           green=0x5fe9,cyan=0x05ff,sel=0x2673,dim=0xad55;
+        const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        green=p.good,
+        cyan=p.accent,
+        sel=p.selected,
+        dim=p.muted;
         d.fillScreen(bg);d.fillRect(0,0,240,23,head);
         d.setTextColor(white,head);d.setCursor(5,7);
         d.print(mode_<0?"POCKET OFFICE":label(mode_));
