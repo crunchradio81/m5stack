@@ -2,7 +2,7 @@
 
 One native, statically linked firmware for the **stock original 2023 M5Stack Cardputer (K132 / StampS3)**. No Grove unit, external sensor, soldering or expansion board. A FAT32 microSD is optional and uses the device's **built-in slot**.
 
-**P1 status: source-only development milestone. Not flashed or hardware-certified.** This repository currently needs GitHub CI and an actual K132 acceptance run. Back up your existing firmware and card before flashing.
+**P1/P1.1 status: compiled by GitHub Actions; not flashed or hardware-certified.** A real original-K132 acceptance run is still required. Back up your existing firmware and card before flashing.
 
 ## Included P1 programs
 
@@ -73,7 +73,7 @@ session,uptime_ms,scan,bssid,ssid,rssi_dbm,channel,security,hidden
 A12B34C5,155000,22,02:11:22:33:44:55,"ExampleNet",-63,6,WPA2,0
 ```
 
-Fields: session ID (new on boot), milliseconds since boot, scan sequence, access point BSSID/MAC, broadcast SSID, RSSI (dBm), radio channel, advertised security and hidden-SSID flag. **-45 dBm is stronger than -80 dBm**; the bars are approximate only. Repeated observations are useful for tracking relative signal strength, not for measuring physical distance. The record viewer reads the CSV on demand, so you can walk for hours without keeping the complete log in memory. The log stops at **32 MiB** instead of overwriting old detections; when SD writes fail, collection pauses and reports the problem. There is no automatic network upload.
+Fields: session ID (new on boot), milliseconds since boot, scan sequence, access point BSSID/MAC, broadcast SSID, RSSI (dBm), radio channel, advertised security and hidden-SSID flag. **-45 dBm is stronger than -80 dBm**; the bars are approximate only. Repeated observations are useful for tracking relative signal strength, not for measuring physical distance. The record viewer reads the CSV on demand, so large logs do not have to fit in device RAM. The log stops at **32 MiB** instead of overwriting old detections; when SD writes fail, collection pauses and reports the problem. There is no automatic network upload.
 
 **Limitations:** this detects nearby **Wi-Fi access points**, not individual phones or Wi-Fi clients; the original Cardputer cannot receive 5/6 GHz Wi-Fi. It has no GPS and no always-accurate wall clock, so the log contains no location and no verified date/time. This application does not connect to networks or capture passwords. The CSV includes nearby access point MAC addresses, so keep it private unless you intentionally choose to share it.
 
