@@ -1,0 +1,368 @@
+#pragma once
+// Original stock Cardputer K132: SD-based type 0/1 MIDI player, approximate
+// multi-voice GM family synth, no PSRAM, Grove, USB MIDI or external decoder.
+#include <Arduino.h>
+#include <SD.h>
+#include <M5Cardputer.h>
+#include <esp_timer.h>
+#include <string.h>
+#include <strings.h>
+#include "midi/Smf.h"
+#include "midi/Synth.h"
+
+class MidiApp {
+public:
+    static constexpr const char* Folder="/SUITE/MIDI";
+    static constexpr int MaxSongs=48;
+    enum class Page:uint8_t {Library,Playing,Mixer,Help};
+
+    void enter(bool sdReady) {
+        exit();
+        page_=Page::Library;
+        refresh(sdReady);
+    }
+    void exit() {
+        playing_=loaded_=hasNext_=endTail_=false;
+        speakerOff();source_.close();synth_.allSoundOff();
+    }
+    void poll() {
+        if(!loaded_ || !playing_) return;
+        const int64_t now=esp_timer_get_time();
+        for(int i=0;i<96 && hasNext_ && due_<=now;++i) {
+            const suite::smf::Event ev=next_;
+            dispatch(ev);lastTick_=ev.tick;
+            if(!reader_.next(next_)) {
+                if(reader_.failed()) {
+                    status_="MIDI stream damaged";stop();return;
+                }
+                hasNext_=false;endTail_=true;tailDue_=now+350000;
+                break;
+            }
+            schedule(next_);
+        }
+        if(endTail_ && now>=tailDue_) {
+            if(loop_) restart();
+            else {
+                playing_=false;endTail_=false;status_="Finished";
+                speakerOff();synth_.allSoundOff();
+            }
+            return;
+        }
+        if(!speakerOn_) return;
+        // Speaker owns queued raw buffers. Keep 3 reusable buffers and no
+        // more than 2 outstanding sound chunks on its virtual channel 0.
+        for(int i=0;i<2;++i) {
+            if(M5Cardputer.Speaker.isPlaying(0)>=2) break;
+            int16_t* pcm=audio_[audioIndex_];
+            synth_.render(pcm,AudioFrames);
+            if(!M5Cardputer.Speaker.playRaw(pcm,AudioFrames,
+                  suite::midi::Synth::SampleRate,false,1,0,false)) break;
+            audioIndex_=(audioIndex_+1)%3;
+        }
+    }
+    void onKey(const Keyboard_Class::KeysState& k,bool sdReady) {
+        if(page_==Page::Library) {
+            if(k.up || letter(k,'w')) {if(selected_>0)--selected_;}
+            if(k.down || letter(k,'s')) {if(selected_+1<songCount_)++selected_;}
+            if(letter(k,'r'))refresh(sdReady);
+            if(k.enter && songCount_>0)start(selected_);
+            return;
+        }
+        if(page_==Page::Help) {
+            if(k.backspace || letter(k,'b') || k.enter)page_=Page::Playing;
+            return;
+        }
+        if(page_==Page::Mixer) {
+            if(k.up && trackSelected_>0)--trackSelected_;
+            if(k.down && trackSelected_+1<reader_.trackCount())++trackSelected_;
+            if(letter(k,'s')) {
+                solo_=(solo_==trackSelected_)?-1:trackSelected_;
+                applyMute();
+            }
+            if(k.enter || letter(k,'m')) {
+                manualMute_[trackSelected_]=!manualMute_[trackSelected_];
+                applyMute();
+            }
+            if(letter(k,'b') || k.backspace)page_=Page::Playing;
+            return;
+        }
+        if(k.enter || symbol(k,' ') || letter(k,'p')) {toggle();return;}
+        if(letter(k,'b') || k.backspace) {
+            exit();page_=Page::Library;return;
+        }
+        if(letter(k,'m')) {page_=Page::Mixer;return;}
+        if(letter(k,'h') || symbol(k,'?')) {page_=Page::Help;return;}
+        if(letter(k,'l')) {loop_=!loop_;return;}
+        if(letter(k,'z')) {restart();return;}
+        if(letter(k,'n')) {
+            if(songCount_>1) {
+                selected_=(selected_+1)%songCount_;
+                start(selected_);
+            }
+            return;
+        }
+        if(symbol(k,'+') || symbol(k,'=')) {
+            if(speed_<200)speed_+=10;
+            return;
+        }
+        if(symbol(k,'-')) {
+            if(speed_>50)speed_-=10;
+            return;
+        }
+        if(symbol(k,']')) {
+            if(volume_<160)volume_+=8;
+            if(speakerOn_)M5Cardputer.Speaker.setVolume(volume_);
+            return;
+        }
+        if(symbol(k,'[')) {
+            if(volume_>16)volume_-=8;
+            if(speakerOn_)M5Cardputer.Speaker.setVolume(volume_);
+        }
+    }
+    void render() const {
+        auto &d=M5Cardputer.Display;
+        constexpr uint16_t bg=0x0841,panel=0x10C4,accent=0x05ff,white=0xffff,
+                           green=0x5fe9,grey=0xAD55,selected=0x2673;
+        d.fillScreen(bg);d.fillRect(0,0,240,23,panel);
+        d.setTextColor(white,panel);d.setCursor(5,7);
+        d.print(page_==Page::Library?"MIDI LIBRARY":
+                page_==Page::Playing?"MIDI STUDIO":
+                page_==Page::Mixer?"MIDI MIXER":"MIDI CONTROLS");
+        d.setTextColor(accent,panel);d.setCursor(212,7);d.print("P2");
+        d.fillRect(0,116,240,19,panel);
+        d.setTextColor(grey,panel);d.setCursor(4,121);
+        switch(page_) {
+            case Page::Library:d.print("Enter play | R rescan | home");break;
+            case Page::Playing:d.print("Enter pause | M mix | H help");break;
+            case Page::Mixer:d.print("Enter mute | S solo | B back");break;
+            case Page::Help:d.print("B return to player");break;
+        }
+        auto line=[&d,bg](int x,int y,const String& s,uint16_t color=0xffff) {
+            d.setTextColor(color,bg);d.setCursor(x,y);d.print(s.substring(0,38));
+        };
+        if(page_==Page::Library) {
+            line(5,26,String(songCount_)+" MIDI files in /SUITE/MIDI",accent);
+            if(songCount_==0) {
+                line(5,44,status_,grey);
+                line(5,57,"Copy .MID files to SD card",grey);
+            } else {
+                const int top=selected_>=7?selected_-6:0;
+                for(int i=top;i<songCount_ && i<top+7;++i) {
+                    const int y=37+(i-top)*11;
+                    if(i==selected_) d.fillRect(2,y-1,235,11,selected);
+                    d.setTextColor(white,i==selected_?selected:bg);
+                    d.setCursor(5,y);d.print(String(i+1)+". "+songs_[i]);
+                }
+                if(status_!="Select a song")line(5,105,status_,grey);
+            }
+            return;
+        }
+        if(page_==Page::Help) {
+            line(5,27,"Enter/Space/P: Play or pause");
+            line(5,39,"B: Library  N: Next  Z: Restart");
+            line(5,51,"L: Loop  +/-: Tempo 50-200%");
+            line(5,63,"[ / ]: Volume  M: Track mixer");
+            line(5,75,"Mixer: Fn arrows, Enter mute");
+            line(5,87,"Mixer: S solo selected track");
+            line(5,101,"Built-in speaker, no SoundFont",grey);
+            return;
+        }
+        if(!loaded_) {line(5,37,status_,grey);return;}
+        if(page_==Page::Mixer) {
+            line(5,26,String("Tracks ")+reader_.trackCount()+
+                     "  Solo "+(solo_<0?String("OFF"):String(solo_+1)),accent);
+            const int top=trackSelected_>=7?trackSelected_-6:0;
+            for(int i=top;i<reader_.trackCount() && i<top+7;++i) {
+                const int y=37+(i-top)*11;
+                if(i==trackSelected_)d.fillRect(2,y-1,235,11,selected);
+                d.setTextColor(white,i==trackSelected_?selected:bg);
+                d.setCursor(5,y);
+                d.print(String("Track ")+(i+1)+
+                    (synth_.trackMuted(i)?" [MUTE] ":" [ON] ")+
+                    "v"+String(synth_.activeForTrack(i)));
+            }
+            return;
+        }
+        line(5,26,songs_[selected_],accent);
+        line(5,39,String(playing_?"PLAY ":"PAUSE ")+
+                  "Fmt"+reader_.format()+" / "+reader_.trackCount()+" tracks",
+                  playing_?green:grey);
+        const uint32_t bpm=tempo_?60000000u/tempo_:0;
+        line(5,52,String("Tempo ")+bpm+" BPM  Speed "+speed_+"%");
+        line(5,65,String("PPQN ")+reader_.division()+
+                    "  Tick "+lastTick_+"  "+numerator_+"/"+(1u<<denominatorPower_));
+        line(5,78,String("Voices ")+synth_.activeVoices()+
+                    "/"+suite::midi::Synth::Voices+
+                    "  Vol "+volume_+"  Loop "+(loop_?"ON":"OFF"));
+        line(5,91,String("Last note ")+lastNote_+"  Prog "+lastProgram_);
+        line(5,104,status_,grey);
+    }
+
+private:
+    class SdSource:public suite::smf::Source {
+    public:
+        bool open(const char* path) {
+            close();file_=SD.open(path,FILE_READ);
+            return file_ && !file_.isDirectory();
+        }
+        void close(){if(file_)file_.close();}
+        uint32_t length() const override {
+            return file_?static_cast<uint32_t>(file_.size()):0;
+        }
+        bool readAt(uint32_t offset,uint8_t* out,size_t n) override {
+            return file_ && file_.seek(offset) &&
+                   file_.read(out,n)==static_cast<int>(n);
+        }
+    private:
+        File file_;
+    };
+    static constexpr size_t AudioFrames=256;
+    char songs_[MaxSongs][64]={{0}};
+    int songCount_=0,selected_=0,trackSelected_=0,solo_=-1;
+    bool manualMute_[suite::smf::Reader::MaxTracks]={};
+    bool loaded_=false,playing_=false,loop_=false,speakerOn_=false;
+    bool hasNext_=false,endTail_=false;
+    Page page_=Page::Library;
+    int speed_=100;
+    uint8_t volume_=64;
+    int64_t due_=0,pauseAt_=0,tailDue_=0;
+    uint32_t lastTick_=0,tempo_=500000;
+    uint8_t numerator_=4,denominatorPower_=2,lastProgram_=0;
+    String lastNote_="--",status_;
+    int16_t audio_[3][AudioFrames]={};
+    int audioIndex_=0;
+    SdSource source_;
+    suite::smf::Reader reader_;
+    suite::smf::Event next_;
+    suite::midi::Synth synth_;
+
+    static bool symbol(const Keyboard_Class::KeysState& k,char c) {
+        for(char x:k.word)if(x==c)return true;
+        return false;
+    }
+    static bool letter(const Keyboard_Class::KeysState& k,char c) {
+        return symbol(k,c)||symbol(k,static_cast<char>(c-'a'+'A'));
+    }
+    static bool isMidi(const char* n) {
+        if(!n)return false;
+        const char* dot=strrchr(n,'.');if(!dot)return false;
+        char suffix[6]={};const size_t len=strlen(dot);
+        if(len>=sizeof(suffix))return false;
+        for(size_t i=0;i<len;++i) {
+            char c=dot[i];suffix[i]=(c>='A'&&c<='Z')?static_cast<char>(c+32):c;
+        }
+        return strcmp(suffix,".mid")==0||strcmp(suffix,".midi")==0;
+    }
+    void refresh(bool sdReady) {
+        songCount_=0;selected_=0;
+        if(!sdReady){status_="No SD mounted";return;}
+        if(!SD.exists("/SUITE"))SD.mkdir("/SUITE");
+        if(!SD.exists(Folder)&&!SD.mkdir(Folder)) {
+            status_="Cannot make /SUITE/MIDI";return;
+        }
+        File dir=SD.open(Folder,FILE_READ);
+        if(!dir||!dir.isDirectory()) {
+            if(dir)dir.close();status_="SD open failed";return;
+        }
+        while(songCount_<MaxSongs) {
+            File f=dir.openNextFile();if(!f)break;
+            String name=f.name();
+            const int slash=name.lastIndexOf('/');
+            if(slash>=0)name=name.substring(slash+1);
+            if(!f.isDirectory() && isMidi(name.c_str()) &&
+               name.length()<sizeof(songs_[0])) {
+                strncpy(songs_[songCount_],name.c_str(),sizeof(songs_[0])-1);
+                ++songCount_;
+            }
+            f.close();
+        }
+        dir.close();
+        for(int i=0;i<songCount_;++i)
+            for(int j=i+1;j<songCount_;++j)
+                if(strcasecmp(songs_[i],songs_[j])>0) {
+                    char tmp[64];strcpy(tmp,songs_[i]);
+                    strcpy(songs_[i],songs_[j]);strcpy(songs_[j],tmp);
+                }
+        status_=songCount_?"Select a song":"No .MID files found";
+    }
+    void speakerOff() {
+        if(speakerOn_)M5Cardputer.Speaker.stop(0);
+        speakerOn_=false;
+    }
+    void start(int index) {
+        if(index<0||index>=songCount_)return;
+        selected_=index;loaded_=playing_=false;
+        char path[96];
+        const int len=snprintf(path,sizeof(path),"%s/%s",Folder,songs_[index]);
+        if(len<0||static_cast<size_t>(len)>=sizeof(path)) {
+            status_="Filename too long";return;
+        }
+        speakerOff();source_.close();
+        if(!source_.open(path)||!reader_.open(source_)) {
+            source_.close();status_="Unsupported/damaged MIDI";return;
+        }
+        synth_.reset();memset(manualMute_,0,sizeof(manualMute_));
+        solo_=-1;trackSelected_=0;
+        tempo_=500000;numerator_=4;denominatorPower_=2;
+        lastTick_=0;lastNote_="--";lastProgram_=0;
+        hasNext_=reader_.next(next_);
+        if(reader_.failed()||!hasNext_) {
+            source_.close();status_="Empty or invalid MIDI";return;
+        }
+        due_=esp_timer_get_time();schedule(next_);
+        speakerOn_=M5Cardputer.Speaker.begin();
+        if(speakerOn_)M5Cardputer.Speaker.setVolume(volume_);
+        playing_=loaded_=true;page_=Page::Playing;
+        endTail_=false;audioIndex_=0;
+        status_=speakerOn_?"Wave synth (approx GM)":"Speaker unavailable";
+    }
+    void restart() {
+        if(!loaded_)return;
+        const int oldSpeed=speed_;
+        const uint8_t oldVolume=volume_;
+        const bool oldLoop=loop_;
+        start(selected_);
+        speed_=oldSpeed;volume_=oldVolume;loop_=oldLoop;
+        if(speakerOn_)M5Cardputer.Speaker.setVolume(volume_);
+    }
+    void toggle() {
+        if(!loaded_)return;
+        if(playing_) {
+            playing_=false;pauseAt_=esp_timer_get_time();
+            speakerOff();status_="Paused";return;
+        }
+        const int64_t now=esp_timer_get_time();
+        const int64_t pausedFor=now-pauseAt_;
+        due_+=pausedFor;if(endTail_)tailDue_+=pausedFor;
+        speakerOn_=M5Cardputer.Speaker.begin();
+        if(speakerOn_)M5Cardputer.Speaker.setVolume(volume_);
+        audioIndex_=0;playing_=true;status_="Playing";
+    }
+    void stop() {
+        playing_=loaded_=hasNext_=endTail_=false;
+        speakerOff();source_.close();synth_.allSoundOff();
+    }
+    void schedule(const suite::smf::Event& ev) {
+        const uint32_t ticks=ev.tick-lastTick_;
+        const uint64_t micro=static_cast<uint64_t>(ticks)*tempo_*100u/
+                             (static_cast<uint64_t>(reader_.division())*speed_);
+        due_+=static_cast<int64_t>(micro);
+    }
+    void applyMute() {
+        for(uint8_t i=0;i<reader_.trackCount();++i)
+            synth_.muteTrack(i,manualMute_[i]||(solo_>=0&&i!=solo_));
+    }
+    void dispatch(const suite::smf::Event& ev) {
+        switch(ev.kind) {
+            case suite::smf::Kind::Tempo:tempo_=ev.tempo;break;
+            case suite::smf::Kind::TimeSignature:
+                numerator_=ev.numerator;
+                denominatorPower_=ev.denominatorPower>6?6:ev.denominatorPower;
+                break;
+            case suite::smf::Kind::NoteOn:lastNote_=String(ev.a);break;
+            case suite::smf::Kind::Program:lastProgram_=ev.a;break;
+            default:break;
+        }
+        synth_.event(ev);
+    }
+};
