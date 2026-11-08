@@ -10,6 +10,7 @@
 #include "core/TextDocument.h"
 #include "WifiLogger.h"
 #include "MidiApp.h"
+#include "PocketApps.h"
 
 namespace {
 constexpr uint16_t BG=0x0841, PANEL=0x10C4, SELECTED=0x2673;
@@ -20,9 +21,9 @@ constexpr char NOTE_PATH[]="/SUITE/NOTES.TXT";
 constexpr char CONFIG_PATH[]="/SUITE/CONFIG.TXT";
 constexpr uint8_t BRIGHTNESS[]={64,128,192,255};
 
-enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, WifiLog, WifiLogView, WifiLogDetail, WifiLogErase, Midi, System, Settings };
-const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","Wi-Fi Logger","MIDI Studio","System Info","Settings"};
-constexpr int APP_COUNT=8;
+enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, WifiLog, WifiLogView, WifiLogDetail, WifiLogErase, Midi, System, Settings, Stopwatch, Countdown, Units, Programmer };
+const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","Wi-Fi Logger","MIDI Studio","System Info","Settings","Stopwatch","Countdown","Unit Converter","Programmer"};
+constexpr int APP_COUNT=12;
 Screen screen=Screen::Home;
 int appSelected=0, settingsSelected=0;
 bool sdReady=false, noteWritable=true, dirty=true, scanActive=false, autosave=true;
@@ -40,7 +41,8 @@ bool hasViewedRecord=false;
 suite::wifi_csv::Record viewedRecord;
 WifiLogger wifiLogger;
 MidiApp midiApp;
-uint32_t lastMidiRefresh=0;
+uint32_t lastMidiRefresh=0, lastPocketRefresh=0;
+PocketApps pocketApps;
 
 bool has(const Keyboard_Class::KeysState &k,char c) {
     for(char value:k.word) if(value==c) return true;
@@ -406,6 +408,9 @@ void render() {
         case Screen::WifiLogDetail:drawWifiLogDetail();break;
         case Screen::WifiLogErase:drawWifiLogErase();break;
         case Screen::Midi:midiApp.render();break;
+        case Screen::Stopwatch:case Screen::Countdown:
+        case Screen::Units:case Screen::Programmer:
+            pocketApps.draw(millis());break;
         case Screen::System:drawSystem();break;
         case Screen::Settings:drawSettings();break;
     }
@@ -422,6 +427,10 @@ void openApp(int index) {
         case 5:screen=Screen::Midi;midiApp.enter(sdReady);break;
         case 6:screen=Screen::System;break;
         case 7:screen=Screen::Settings;break;
+        case 8:screen=Screen::Stopwatch;pocketApps.enter(PocketApps::Mode::Stopwatch);break;
+        case 9:screen=Screen::Countdown;pocketApps.enter(PocketApps::Mode::Countdown);break;
+        case 10:screen=Screen::Units;pocketApps.enter(PocketApps::Mode::Units);break;
+        case 11:screen=Screen::Programmer;pocketApps.enter(PocketApps::Mode::Programmer);break;
     }
     dirty=true;
 }
@@ -564,6 +573,9 @@ void input(const Keyboard_Class::KeysState &k) {
         case Screen::Midi:
             midiApp.onKey(k,sdReady);
             break;
+        case Screen::Stopwatch:case Screen::Countdown:
+        case Screen::Units:case Screen::Programmer:
+            pocketApps.onKey(k,millis());break;
         case Screen::System:break;
         case Screen::Settings:
             if(k.up) settingsSelected=(settingsSelected+1)%2;
@@ -601,6 +613,13 @@ void loop() {
         midiApp.poll();
         if(millis()-lastMidiRefresh>=180) {
             lastMidiRefresh=millis();dirty=true;
+        }
+    }
+    pocketApps.poll(millis());
+    if(screen==Screen::Stopwatch || screen==Screen::Countdown ||
+       screen==Screen::Units || screen==Screen::Programmer) {
+        if(millis()-lastPocketRefresh>=120) {
+            lastPocketRefresh=millis();dirty=true;
         }
     }
     if(wifiLogger.running) wifiLogger.tick();
