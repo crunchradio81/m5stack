@@ -2,7 +2,7 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P15 and Launcher 2.0 have passed their automated builds. P16 adds global theme palettes and named SD settings profiles; its complete firmware matrix must pass before release. None of the firmware has been physically tested on an original K132.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**P1–P16 and Launcher 2.0 have passed automated builds. P17 adds verified SD backup tools and a searchable multi-file notebook; final CI and physical hardware acceptance are separately required. None of the firmware has been physically tested on an original K132.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
 ## Resident suite and SD application collections
 
@@ -44,6 +44,8 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Developer Studio II (P14) | Numbered BASIC, code/hex editing, USB serial console, SD search |
 | Verified HTTPS Web Tools (P15) | HTTPS text/RSS, Wikipedia, manual-coordinate weather, API GET, CA setup |
 | Theme Editor and Settings Profiles (P16) | Six preset themes, three profiles, brightness, volume, autosave, bounded backup recovery |
+| Searchable Notebook (P17) | 32 small ASCII notes, content search, verified backup, non-overwriting restore, per-note integrity |
+| Safe SD File Library (P17) | Restricted USER data files, 256KiB streaming copies, byte verification, safe restored filenames |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -60,11 +62,12 @@ pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_b
         -e sd_devtools -e sd_system \\
         -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
         -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11 \\
-        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure -e sd_themes
+        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure -e sd_themes \\
+        -e sd_notebook -e sd_safefiles
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The ZIP contains **twenty-three** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS, MIDITOOLS, ARCADE2, POCKET11, ARCADE3, MUSIC2, DEV2, WEBSECURE and THEMES. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
+The ZIP contains **twenty-five** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS, MIDITOOLS, ARCADE2, POCKET11, ARCADE3, MUSIC2, DEV2, WEBSECURE, THEMES, NOTEBOOK and SAFEFILES. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -74,7 +77,7 @@ firmware/configuration and must use a one-time full flash erase. Do not
 execute that without a backup and consent. [Read the exact installation
 and recovery instructions](docs/SD_LAUNCHER.md).
 
-GitHub Actions compiles the factory launcher and twenty-three SD app firmware images, runs portable regressions and packages twenty-three manifest/binary pairs for SD.
+GitHub Actions compiles the factory launcher and twenty-five SD app firmware images, runs portable regressions and packages twenty-five manifest/binary pairs for SD.
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
@@ -202,7 +205,7 @@ Fields: session ID (new on boot), milliseconds since boot, scan sequence, access
 
 ## P5 collection controls and limitations
 
-The eight SD packages live in FAT32 `/SUITE/APPS`. Open **SD App Library**
+The separately compiled SD app packages live in FAT32 `/SUITE/APPS`. Open **SD App Library**
 from the factory suite, choose a package, press Enter and confirm with Y.
 The device installs that one package to OTA_0, then boots it; **B** goes
 back to the package's submenu and the top-left backtick/Escape restarts
@@ -343,3 +346,24 @@ Source details and controls: [P16 Theme Profiles](docs/P16_THEME_PROFILES.md).
 Original-board tests: [P16 Acceptance](docs/P16_ACCEPTANCE.md).
 **23 SD firmware IDs** expected after P16; full CI compilation and
 physical original K132 hardware acceptance remain separate gates.
+
+## P17 — Searchable Notebook and Safe SD File Library
+
+Two new SD firmware collections extend safe, offline data management.
+`NOTEBOOK` supports up to 32 individually named, 1,023-byte notes with
+title/body search, explicit Ctrl+S save, verified note backups, and
+restores under new filenames without overwriting current notes.
+`SAFEFILES` provides a read-mostly browser restricted to
+`/SUITE/USER` and `/SUITE/BACKUP/USER`, with user-confirmed
+512-byte streaming copies, byte comparison before and after renaming,
+256KiB maximum file size, and safe non-overwriting restores.
+
+Neither tool deletes or formats files, scans the SD root, copies
+firmware, executes programs from SD, uploads private content or
+performs automatic remote backup. FAT32 is not power-loss transactional:
+preserve independent computer-side backups.
+
+See [P17 controls and file layout](docs/P17_NOTEBOOK_SAFEFILES.md) and
+[original K132 acceptance gates](docs/P17_ACCEPTANCE.md). The full
+suite now targets **25 separately installable SD image IDs**; actual
+P17 CI and physical validation remain release gates.

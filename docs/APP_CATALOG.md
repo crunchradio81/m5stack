@@ -9,7 +9,7 @@ Statuses: **Built source** means source code exists, not necessarily merged or h
 
 ## P4 executable SD library (built source, hardware acceptance pending)
 
-A persistent factory menu launches twenty-three separately compiled SD firmware
+A persistent factory menu launches twenty-five separately compiled SD firmware
 images into a replaceable OTA slot, using owner-controlled manifests and
 SHA256 integrity checks. Only suite-managed app IDs are allowed; this is
 not authenticated firmware or guaranteed hardware recovery. See docs/SD_LAUNCHER.md.
@@ -71,7 +71,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 ## P4 productivity (14)
 
 39. Full Text Editor — **P11/P14 partial: single-file ASCII editing; rich multi-file editor planned**
-40. Searchable Notebook — **Planned**
+40. Searchable Notebook — **P17 source: bounded multi-file ASCII notes, title/body search and non-overwriting verified backups; rich Unicode/indexing planned**
 41. To-Do Manager — **P5 source; hardware pending**
 42. Calendar — **P5 source; hardware pending** (needs clock sync/manual date)
 43. Contacts — **P5 source; hardware pending**
@@ -129,10 +129,10 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P8 core system utilities (9)
 
-86. Full SD File Manager — **P7 partial: USER-only files, safe copy/rename/delete; full manager planned**
+86. Full SD File Manager — **P7/P17 partial: separate restricted USER and backup browsers, verified 256KiB copies/non-overwriting restores; unrestricted manager remains planned**
 87. File Search / Content Search — **P5 source; hardware pending**
 88. Storage Analyzer — **P5 source; hardware pending**
-89. Backup / Restore Manager — **P7 partial: copy USER↔BACKUP, no overwrites or whole-SD backup**
+89. Backup / Restore Manager — **P17 extends restricted USER and notes backups with exact byte verification before/after rename; whole-SD imaging remains planned**
 90. Battery Monitor — **P6 source: voltage and estimated level; hardware pending**
 91. Firmware Information / Recovery Guide — **P6 partial: firmware info only**
 92. Theme Editor — **P16 source: six shared preset palettes, preview and explicit SD save; arbitrary RGB editing not implemented**
@@ -305,3 +305,23 @@ docs/P14_DEV_STUDIO.md, docs/P15_SECURE_WEB.md.
   file/backup manager, arbitrary RGB theming and physical K132 QA.
 
 See docs/P16_THEME_PROFILES.md and docs/P16_ACCEPTANCE.md.
+
+## P17 — Searchable Notebook and Safe USER File Library
+
+- `NOTEBOOK`: 32 distinct notes, up to 1023 bytes each, case-insensitive
+  title/body search, verified temporary file saves, read-after-final-rename
+  checks, separate backups and new-name restores (no overwrite).
+- `SAFEFILES`: view up to 32 safe files in each of two fixed USER
+  directories; backup and compare exact bytes in 512-byte chunks;
+  restore via new R#- filenames without deleting source/destination.
+  Maximum 256KiB per file, 128 scanned entries per directory.
+- Both applications are local/offline and deliberately exclude
+  firmware partitions, `/SUITE/APPS`, credentials and system files.
+  No unrestricted filesystem access, hidden destructive operations,
+  whole-SD backup, cloud syncing or cryptographic verification.
+- App library grows from 23 to **25** replaceable SD OTA firmware images.
+- Source CI and original K132 physical storage/OTA acceptance are
+  distinct and **no hardware validation has occurred**.
+
+P17 details: docs/P17_NOTEBOOK_SAFEFILES.md.
+Physical QA: docs/P17_ACCEPTANCE.md.
