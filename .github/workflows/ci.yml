@@ -4,7 +4,7 @@ concurrency:
   cancel-in-progress: true
 on:
   push:
-    branches: [main, feature/cardputer-k132-advanced-midi, feature/cardputer-k132-pocket-tools, feature/cardputer-k132-sd-launcher-and-apps]
+    branches: [main, feature/cardputer-k132-advanced-midi, feature/cardputer-k132-pocket-tools, feature/cardputer-k132-sd-launcher-and-apps, feature/cardputer-k132-sd-collections]
   pull_request:
     branches: [main]
 jobs:
@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [sd_metronome, sd_piano, sd_channels, sd_ble]
+        target: [sd_metronome, sd_piano, sd_channels, sd_ble, sd_arcade, sd_office, sd_inspect, sd_musiclab]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

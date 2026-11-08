@@ -136,7 +136,7 @@ public:
                            white=0xffff,cyan=0x05ff,green=0x5fe9,dim=0xad55;
         d.fillScreen(bg);d.fillRect(0,0,240,23,head);
         d.setTextColor(white,head);d.setCursor(5,7);
-        d.print(mode_<0?"MUSIC PRACTICE":labels_[mode_]);
+        d.print(mode_<0?"MUSIC PRACTICE":label(mode_));
         d.setTextColor(cyan,head);d.setCursor(209,7);d.print("SD");
         d.fillRect(0,116,240,19,head);
         d.setTextColor(dim,head);d.setCursor(4,121);
@@ -149,7 +149,7 @@ public:
                 const int y=29+i*16;
                 if(menu_==i)d.fillRect(3,y-1,234,13,sel);
                 d.setTextColor(white,menu_==i?sel:bg);
-                d.setCursor(8,y+2);d.print(String(i+1)+". "+labels_[i]);
+                d.setCursor(8,y+2);d.print(String(i+1)+". "+label(i));
             }
             return;
         }
@@ -200,9 +200,12 @@ public:
         }
     }
 private:
-    static constexpr const char* labels_[5]={
+    static const char* label(int idx){
+        static const char* const items[]={
         "Morse Player","Tone Generator","Drum Sequencer","Ear Trainer","Tap Tempo"
     };
+        return items[idx];
+    }
     int mode_=-1,menu_=0,step_=0,lane_=0,beatStep_=0;
     unsigned freq_=440,bpm_=110,first_=60,second_=64,quizPhase_=0;
     unsigned correct_=0,asked_=0;

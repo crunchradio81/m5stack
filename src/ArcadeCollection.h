@@ -67,7 +67,7 @@ public:
         constexpr uint16_t bg=0x0841,white=0xffff,sel=0x2673,cyan=0x05ff,green=0x5fe9,red=0xf926;
         d.fillScreen(bg);d.fillRect(0,0,240,23,0x10c4);
         d.setTextColor(white,0x10c4);d.setCursor(5,7);
-        d.print(mode_<0?"RETRO ARCADE":names_[mode_]);
+        d.print(mode_<0?"RETRO ARCADE":name(mode_));
         d.setTextColor(cyan,0x10c4);d.setCursor(203,7);d.print("SD");
         d.fillRect(0,116,240,19,0x10c4);
         d.setTextColor(white,0x10c4);d.setCursor(4,121);
@@ -77,7 +77,7 @@ public:
                 int y=27+i*12;
                 if(cursor_==i)d.fillRect(3,y-1,233,12,sel);
                 d.setTextColor(white,cursor_==i?sel:bg);
-                d.setCursor(8,y);d.print(String(i+1)+". "+names_[i]);
+                d.setCursor(8,y);d.print(String(i+1)+". "+name(i));
             }
             return;
         }
@@ -156,7 +156,10 @@ public:
         }
     }
 private:
-    static constexpr const char* names_[7]={"Snake","2048","Minesweeper","Sokoban","Pong","Breakout","Word Guess"};
+    static const char* name(int idx){
+        static const char* const items[]={"Snake","2048","Minesweeper","Sokoban","Pong","Breakout","Word Guess"};
+        return items[idx];
+    }
     suite::arcade::Snake snake_;
     suite::arcade::Tiles2048 tiles_;
     suite::arcade::Mines mines_;

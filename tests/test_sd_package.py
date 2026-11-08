@@ -20,10 +20,10 @@ with tempfile.TemporaryDirectory() as directory:
         (dest / "firmware.bin").write_bytes(b"\xe9" + bytes([n])*127)
     archive = tmp / "apps.zip"
     files = packer.package(build, archive)
-    assert len(files) == 8
+    assert len(files) == 2 * len(packer.APPS)
     with zipfile.ZipFile(archive) as z:
         names = z.namelist()
-        assert len(names) == 9 and "README.txt" in names
+        assert len(names) == 1 + 2 * len(packer.APPS) and "README.txt" in names
         for env, app_id, label in packer.APPS:
             blob = z.read(f"SUITE/APPS/{app_id}.BIN")
             meta = z.read(f"SUITE/APPS/{app_id}.APP").decode("ascii")

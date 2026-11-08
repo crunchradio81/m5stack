@@ -1,15 +1,32 @@
 // Stock Cardputer K132 SD app firmware entrypoint. Installed only in OTA_0
 // by the suite factory launcher. The original board has no PSRAM.
 #if defined(SUITE_APP_METRONOME) || defined(SUITE_APP_PIANO) || \
-    defined(SUITE_APP_CHANNELS) || defined(SUITE_APP_BLE)
+    defined(SUITE_APP_CHANNELS) || defined(SUITE_APP_BLE) || \
+    defined(SUITE_APP_ARCADE) || defined(SUITE_APP_OFFICE) || \
+    defined(SUITE_APP_INSPECT) || defined(SUITE_APP_MUSICLAB)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
+#if defined(SUITE_APP_ARCADE)
+#include "ArcadeCollection.h"
+using ActiveApp=ArcadeCollection;
+#elif defined(SUITE_APP_OFFICE)
+#include "OfficeCollection.h"
+using ActiveApp=OfficeCollection;
+#elif defined(SUITE_APP_INSPECT)
+#include "InspectCollection.h"
+using ActiveApp=InspectCollection;
+#elif defined(SUITE_APP_MUSICLAB)
+#include "MusicCollection.h"
+using ActiveApp=MusicCollection;
+#else
 #include "StandaloneApps.h"
+using ActiveApp=StandaloneApp;
+#endif
 
 namespace {
-StandaloneApp app;
+ActiveApp app;
 bool returnPrepared=false;
 uint32_t drawnAt=0;
 bool escapeKey(const Keyboard_Class::KeysState& k) {

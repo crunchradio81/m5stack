@@ -92,7 +92,7 @@ public:
         constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,cyan=0x05ff,sel=0x2673,dim=0xad55,green=0x5fe9;
         d.fillScreen(bg);d.fillRect(0,0,240,23,head);
         d.setTextColor(white,head);d.setCursor(5,7);
-        d.print(mode_<0?"SD INSPECTOR":labels_[mode_]);
+        d.print(mode_<0?"SD INSPECTOR":label(mode_));
         d.setTextColor(cyan,head);d.setCursor(209,7);d.print("SD");
         d.fillRect(0,116,240,19,head);
         d.setTextColor(dim,head);d.setCursor(5,121);
@@ -103,7 +103,7 @@ public:
             for(int i=0;i<6;++i){
                 int y=27+i*13;if(cursor_==i)d.fillRect(3,y-1,233,12,sel);
                 d.setTextColor(white,cursor_==i?sel:bg);
-                d.setCursor(8,y);d.print(String(i+1)+". "+labels_[i]);
+                d.setCursor(8,y);d.print(String(i+1)+". "+label(i));
             }
             d.setTextColor(dim,bg);d.setCursor(5,109);d.print(status_);
             return;
@@ -221,9 +221,12 @@ public:
     }
 private:
     static constexpr int MaxEntries=64,MaxWalk=256;
-    static constexpr const char* labels_[6]={
+    static const char* label(int idx){
+        static const char* const items[]={
         "Hex Viewer","CSV Viewer","JSON Inspector","File Search","ASCII Chart","Storage Analyzer"
     };
+        return items[idx];
+    }
     int mode_=-1,cursor_=0,selected_=0,entries_=0,found_=0,ascii_=65;
     uint32_t offset_=0;
     uint32_t scanCount_=0,dirs_=0;

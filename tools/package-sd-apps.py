@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Package K132 suite-managed SD firmware binaries with bounded manifests.
 
-Run after five PlatformIO environments compile:
+Run after the standalone PlatformIO environments compile:
   python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-SD-Apps.zip
 
 Place the ZIP's SUITE/APPS directory at the root of a FAT32 microSD card.
@@ -19,6 +19,10 @@ APPS = (
     ("sd_piano", "PIANO", "Music Keyboard"),
     ("sd_channels", "CHANNELS", "Wi-Fi Channel Analyzer"),
     ("sd_ble", "BLE", "BLE Explorer"),
+    ("sd_arcade", "ARCADE", "Retro Arcade Collection"),
+    ("sd_office", "OFFICE", "Pocket Office Collection"),
+    ("sd_inspect", "INSPECT", "SD Inspector Collection"),
+    ("sd_musiclab", "MUSICLAB", "Music Practice Collection"),
 )
 MAX_APP_BYTES = 0x300000
 

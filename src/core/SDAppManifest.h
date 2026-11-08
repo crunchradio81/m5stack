@@ -20,7 +20,9 @@ struct App {
 inline bool equals(const char*a,const char*b){return strcmp(a,b)==0;}
 inline bool authorizedId(const char* id) {
     return equals(id,"METRONOME")||equals(id,"PIANO")||
-           equals(id,"CHANNELS")||equals(id,"BLE");
+           equals(id,"CHANNELS")||equals(id,"BLE")||
+           equals(id,"ARCADE")||equals(id,"OFFICE")||
+           equals(id,"INSPECT")||equals(id,"MUSICLAB");
 }
 inline bool safeFilename(const char *s) {
     const size_t n=strlen(s);

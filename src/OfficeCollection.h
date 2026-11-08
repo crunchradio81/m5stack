@@ -96,7 +96,7 @@ public:
                            green=0x5fe9,cyan=0x05ff,sel=0x2673,dim=0xad55;
         d.fillScreen(bg);d.fillRect(0,0,240,23,head);
         d.setTextColor(white,head);d.setCursor(5,7);
-        d.print(mode_<0?"POCKET OFFICE":labels_[mode_]);
+        d.print(mode_<0?"POCKET OFFICE":label(mode_));
         d.setTextColor(cyan,head);d.setCursor(208,7);d.print("SD");
         d.fillRect(0,116,240,19,head);
         d.setTextColor(dim,head);d.setCursor(4,121);
@@ -109,7 +109,7 @@ public:
                 const int y=30+i*16;
                 if(i==cursor_)d.fillRect(3,y-1,233,14,sel);
                 d.setTextColor(white,i==cursor_?sel:bg);
-                d.setCursor(8,y+2);d.print(String(i+1)+". "+labels_[i]);
+                d.setCursor(8,y+2);d.print(String(i+1)+". "+label(i));
             }
             d.setTextColor(dim,bg);d.setCursor(5,109);d.print(status_);
             return;
@@ -154,7 +154,10 @@ public:
         else d.print(status_.substring(0,38));
     }
 private:
-    static constexpr const char* labels_[5]={"To-do Manager","Contacts","Expense Tracker","Journal","Calendar"};
+    static const char* label(int idx){
+        static const char* const items[]={"To-do Manager","Contacts","Expense Tracker","Journal","Calendar"};
+        return items[idx];
+    }
     int mode_=-1,cursor_=0,selected_=0,year_=2026,month_=11;
     bool sd_=false,readOnly_=false,dirty_=true,editing_=false,deleting_=false;
     char entry_[suite::office::Records::Width]={};
