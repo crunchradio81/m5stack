@@ -6,12 +6,16 @@
     defined(SUITE_APP_INSPECT) || defined(SUITE_APP_MUSICLAB) || \
     defined(SUITE_APP_DEVTOOLS) || defined(SUITE_APP_SYSTEM) || \
     defined(SUITE_APP_IRTOOLS) || defined(SUITE_APP_WIRELESS) || \
-    defined(SUITE_APP_AUDIOLAB) || defined(SUITE_APP_FILETOOLS)
+    defined(SUITE_APP_AUDIOLAB) || defined(SUITE_APP_FILETOOLS) || \
+    defined(SUITE_APP_NETTOOLS)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_IRTOOLS)
+#if defined(SUITE_APP_NETTOOLS)
+#include "NetworkCollection.h"
+using ActiveApp=NetworkCollection;
+#elif defined(SUITE_APP_IRTOOLS)
 #include "IRCollection.h"
 using ActiveApp=IRCollection;
 #elif defined(SUITE_APP_WIRELESS)
