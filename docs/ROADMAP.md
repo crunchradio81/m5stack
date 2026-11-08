@@ -36,19 +36,28 @@ Target: original K132 with built-in peripherals; **no external Grove units**.
 - Host-side negative cases, 32-bit rollover and numeric overflow tests.
 - **Gate pending:** physical original K132 acceptance in docs/P3_ACCEPTANCE.md.
 
-## P4 — expanded personal tools
+## P4 — SD application launcher and external firmware programs
+- Custom 8MiB factory + replaceable OTA partition (3MiB each).
+- FAT32 SD app list with bounded .APP manifests, SHA256 checksum and
+  Y/N confirmation for firmware installation.
+- Standalone SD binaries: Metronome, Music Keyboard, Wi-Fi Channel Analyzer,
+  and BLE Explorer; apps arm factory partition as next boot target.
+- Parallel CI builds factory + four images and packages them for microSD.
+- **Gate pending:** physical original K132 boot, recovery, Wi-Fi, BLE and audio tests.
+
+## P5 — expanded personal tools
 - Editable named text documents with explicit Save As and confirmation prompts.
 - File manager copy/rename/delete only after tested backup and undo behaviors.
 - TODO, calendar/date support, expanded calculator.
 - Input regression fixture for all Fn/modifier combinations.
 
-## P5 — communication and development
+## P6 — communication and development
 - Wi-Fi connection manager with local credential storage policy.
 - NTP time sync, HTTP/JSON reader, local LAN messaging.
 - Tiny BASIC or script interpreter with strict resource and I/O quotas.
 - BLE scanner using only built-in radio.
 
-## P6 — media and games
+## P7 — media and games
 - Mono audio recorder/player (streaming, limited formats).
 - IR transmit remote, synth/sequencer, compact retro games.
 - User-friendly backup/restore and multi-firmware launcher integration only
