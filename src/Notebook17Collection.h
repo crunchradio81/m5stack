@@ -284,6 +284,9 @@ private:
      if(!suite::notebook17::makeName(stem_,filename,sizeof(filename))){
        status_="Invalid filename";return;
      }
+     if(notes_.count()>=suite::notebook17::MaxNotes){
+       status_="32-note limit; preserve existing notes";return;
+     }
      if(notes_.find(filename)>=0||
         SD.exists(path(NoteDir,filename).c_str())){
        status_="Name already exists";return;
@@ -341,8 +344,18 @@ private:
      if(existed)SD.rename(backup.c_str(),target.c_str());
      status_="Save commit failed; verify SD";return;
    }
+   char finalBytes[suite::notebook17::MaxBytes+1]={};
+   size_t finalLength=0;
+   if(!readBody(target,finalBytes,finalLength)||
+      !suite::notebook17::same(
+         reinterpret_cast<const uint8_t*>(draft_.data()),draft_.size(),
+         reinterpret_cast<const uint8_t*>(finalBytes),finalLength)){
+     status_="Committed note mismatch; check .BAK";return;
+   }
    dirtyDoc_=false;
-   refresh();status_="Saved; previous version in .BAK";
+   refresh();
+   status_=existed?"Verified save; previous in .BAK":
+                   "Verified new note saved";
  }
  bool copyVerified(const String&from,const String&to){
    if(!sd_||SD.exists(to.c_str())||SD.exists((to+".NEW").c_str())){
@@ -358,6 +371,14 @@ private:
    }
    if(SD.exists(to.c_str())||!SD.rename(tmp.c_str(),to.c_str())){
      status_="Final rename failed; .NEW kept";return false;
+   }
+   char finalBytes[suite::notebook17::MaxBytes+1]={};
+   size_t finalLength=0;
+   if(!readBody(to,finalBytes,finalLength)||
+      !suite::notebook17::same(
+         reinterpret_cast<const uint8_t*>(body),n,
+         reinterpret_cast<const uint8_t*>(finalBytes),finalLength)){
+     status_="Restored/copy destination mismatch";return false;
    }
    status_=String("Verified copy, ")+n+" bytes";
    return true;
