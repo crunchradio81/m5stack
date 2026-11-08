@@ -7,7 +7,7 @@
 The original M5Stack Cardputer K132 (8 MiB flash, no PSRAM) cannot
 execute ESP32 application binaries directly from FAT32 microSD. This
 project uses an **installed factory launcher** and a **replaceable OTA_0
-application partition**. The sixteen separately compiled app packages are
+application partition**. The eighteen separately compiled app packages are
 kept on SD and copied into the OTA slot only when selected.
 
 This differs from simply showing data files on SD or compiling every
@@ -66,6 +66,11 @@ After unpacking the CI SD app pack at the FAT32 card root:
     NETTOOLS.BIN
     MIDITOOLS.APP
     MIDITOOLS.BIN
+    ARCADE2.APP
+    ARCADE2.BIN
+    POCKET11.APP
+    POCKET11.BIN
+    LAUNCHER.CFG  (optional saved categories/favorites/history)
   NET/
     NET.CFG  (user-owned plaintext Wi-Fi credentials)
   IR/
@@ -91,7 +96,7 @@ After unpacking the CI SD app pack at the FAT32 card root:
 
 The `.APP` is a bounded ASCII manifest (name, known ID, image name,
 byte size and SHA-256). The `.BIN` is the **app-only** ESP32-S3 image,
-not a merged factory/bootloader binary. Only sixteen known suite app IDs
+not a merged factory/bootloader binary. Only eighteen known suite app IDs
 are accepted in this first milestone. Any malformed manifest, wrong
 size, invalid image magic, or SHA mismatch cancels installation.
 
@@ -112,7 +117,7 @@ pio run -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
         -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
         -e sd_devtools -e sd_system \\
         -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
-        -e sd_nettools -e sd_miditools
+        -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11
 
 # Builds on host, creates portable SD library:
 python3 tools/package-sd-apps.py \
@@ -131,7 +136,7 @@ This first install erases previous internal data/firmware so that an
 old OTA boot selection cannot conflict with the new factory layout.
 Do not execute that erase command merely to test a source branch.
 
-Alternatively, download the seventeen CI artifacts for **this same
+Alternatively, download the nineteen CI artifacts for **this same
 commit**, including the SD app ZIP, from GitHub Actions. Prebuilt
 binaries are **unverified** until physical board acceptance.
 
@@ -143,7 +148,8 @@ binaries are **unverified** until physical board acceptance.
 4. Choose among Metronome, Music Keyboard, Wi-Fi Channels, BLE Explorer,
    Retro Arcade, Pocket Office, SD Inspector, Music Practice,
    Developer Tools, System Toolbox, IR Remote Tools, Wireless Field Lab,
-   Audio Lab, Safe SD File Tools, Networking & Internet, MIDI Deep Tools.
+   Audio Lab, Safe SD File Tools, Networking & Internet, MIDI Deep Tools, Expanded Arcade,
+   Pocket Productivity.
 5. Enter opens a confirmation screen. Y verifies and installs; N cancels.
 6. After complete SHA check and write, the app boots from OTA_0.
 7. **Home / Escape** in a suite-managed app restarts into the factory
@@ -152,7 +158,7 @@ binaries are **unverified** until physical board acceptance.
    to the launcher.
 
 At present, exactly **one** SD firmware image is installed in the OTA
-slot at a time. All sixteen binary images remain stored on SD. Changing apps
+slot at a time. All eighteen binary images remain stored on SD. Changing apps
 requires reflashing that one OTA slot, not the factory launcher.
 This is normal, but flash erase/write cycles are finite: avoid using
 it as a rapid background app switcher.
@@ -199,3 +205,8 @@ Original board validation checklist: docs/P8_ACCEPTANCE.md.
 
 P9 MIDI controls: docs/P9_MIDI_EXPANSION.md;
 physical tests: docs/P9_ACCEPTANCE.md.
+
+P10 games: docs/P10_ARCADE2.md and docs/P10_ACCEPTANCE.md.
+P11 productivity: docs/P11_POCKET_PRODUCTIVITY.md and docs/P11_ACCEPTANCE.md.
+Launcher 2.0: docs/LAUNCHER2.md and docs/LAUNCHER2_ACCEPTANCE.md.
+The launcher itself is factory firmware, not a separate SD application.
