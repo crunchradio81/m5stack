@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Four stock Cardputer K132 utility apps, no SD, Wi-Fi, RTC or Grove required.
 #include <Arduino.h>
 #include <M5Cardputer.h>
@@ -39,8 +40,9 @@ public:
     }
     void draw(uint32_t now) const {
         auto &d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,panel=0x10c4,selected=0x2673;
-        constexpr uint16_t white=0xffff,cyan=0x05ff,green=0x5fe9,muted=0xad55;
+        const auto&p=suite::skin16::colors();
+        const uint16_t bg=p.bg,panel=p.panel,selected=p.selected;
+        const uint16_t white=p.text,cyan=p.accent,green=p.good,muted=p.muted;
         d.fillScreen(bg);
         d.fillRect(0,0,240,23,panel);
         d.setTextColor(white,panel);d.setCursor(5,7);

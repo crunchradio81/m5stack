@@ -258,8 +258,9 @@ private:
     void feedback(const char* message) {
         status_=message;
         auto& d=M5Cardputer.Display;
-        d.fillScreen(0x0841);
-        d.setTextColor(0xffff,0x0841);
+        const auto&p=suite::skin16::colors();
+        d.fillScreen(p.bg);
+        d.setTextColor(p.text,p.bg);
         d.setCursor(6,22);d.print("SD APP INSTALL");
         d.setCursor(6,48);d.print(message);
         Serial.println(message);

@@ -15,6 +15,7 @@ public:
   sd_=SD.begin(12,SPI,10000000);
   const bool read=suite::skin16::reload();
   working_=suite::skin16::current();
+  if(suite::skin16::validFile())suite::skin16::applyDisplay();
   target_=working_.activeIndex();
   if(!sd_)status_="Insert FAT32 microSD to save";
   else if(!read)status_="Corrupt profiles; recovery only";
