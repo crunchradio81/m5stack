@@ -56,6 +56,7 @@ inline bool survey(const char*line,Survey&out){
  if(rssi>0||rssi<-127)return false;
  if(*cursor!='"')return false;
  ++cursor;
+ bool closed=false;
  while(*cursor){
   if(*cursor=='"'){
    ++cursor;
@@ -63,12 +64,13 @@ inline bool survey(const char*line,Survey&out){
    if(*cursor=='\r')++cursor;
    if(*cursor=='\n')++cursor;
    if(*cursor)return false;
+   closed=true;
    break;
   }
   const unsigned char ch=static_cast<unsigned char>(*cursor++);
   if(ch<32||ch>126)return false;
  }
- if(cursor[-1]!='"' && cursor[-1]!='\n' && cursor[-1]!='\r')return false;
+ if(!closed)return false;
  Survey record;
  record.uptime=time;record.rssi=rssi;record.channel=static_cast<unsigned>(ch);
  strcpy(record.bssid,col[2]);out=record;return true;
@@ -87,13 +89,15 @@ inline bool accumulate(History*items,size_t count,const Survey&s){
    strcpy(h.bssid,s.bssid);h.min=h.max=s.rssi;h.first=s.uptime;
   }
   if(h.samples>=1000000)return false;
-  if(s.rssi<h.min)h.min=s.rssi;if(s.rssi>h.max)h.max=s.rssi;
+  if(s.rssi<h.min)h.min=s.rssi;
+  if(s.rssi>h.max)h.max=s.rssi;
   h.last=s.uptime;++h.samples;h.sum+=s.rssi;
   return true;
  }
  return false;
 }
 inline bool privateLan(uint8_t a,uint8_t b,uint8_t c,uint8_t d){
+ (void)c;
  // RFC1918 only, exclude network and broadcast host addresses.
  if(d==0||d==255)return false;
  if(a==10)return true;
