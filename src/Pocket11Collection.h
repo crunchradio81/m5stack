@@ -81,12 +81,12 @@ public:
        if(symbol(k,'/')){searching_=true;query_[0]=0;}
      }
    }else if(mode_==3){
-     if(k.backspace){const size_t n=strlen(entry_);if(n)entry_[n-1]=0;}
+     if(k.backspace){const size_t n=strlen(entry_);if(n)entry_[n-1]=0;qrReady_=false;}
      else if(k.enter||k.ctrl&&letter(k,'g'))makeQr();
      else if(!k.ctrl&&!k.fn&&!k.alt)
        for(char c:k.word)if(c>=32&&c<=126){
          const size_t n=strlen(entry_);
-         if(n<42){entry_[n]=c;entry_[n+1]=0;}
+         if(n<42){entry_[n]=c;entry_[n+1]=0;qrReady_=false;}
        }
    }else if(mode_==4){
      if(k.up&&length_<32)++length_;
@@ -253,7 +253,7 @@ private:
    return true;
  }
  void loadText(){
-   editor_.clear();
+   editor_.clear();readOnly_=false;
    const char*path="/SUITE/POCKET/NOTE.TXT";
    if(!sd_){status_="Insert SD to edit text";return;}
    if(!SD.exists(path)){status_="New note; Ctrl+S saves";return;}

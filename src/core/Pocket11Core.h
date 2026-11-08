@@ -150,7 +150,8 @@ public:
          char x=*a,y=*b;
          if(x>='A'&&x<='Z')x=static_cast<char>(x+32);
          if(y>='A'&&y<='Z')y=static_cast<char>(y+32);
-         if(x!=y)break;++a;++b;
+         if(x!=y)break;
+         ++a;++b;
        }
        if(!*b){index=i;return true;}
      }
@@ -165,14 +166,14 @@ template<class RNG>bool randomString(char*out,size_t cap,unsigned length,RNG rng
    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
  const uint32_t n=static_cast<uint32_t>(sizeof(alphabet)-1);
  if(!out||length<8||length>32||cap<=length)return false;
- const uint32_t cutoff=UINT32_MAX-UINT32_MAX%n;
+ const uint64_t cutoff=(0x100000000ull/n)*n;
  for(unsigned i=0;i<length;++i){
    uint32_t v=0;
    unsigned tries=0;
    do{
      v=rng();
      if(++tries>200)return false;
-   }while(v>=cutoff);
+   }while(static_cast<uint64_t>(v)>=cutoff);
    out[i]=alphabet[v%n];
  }
  out[length]=0;return true;
