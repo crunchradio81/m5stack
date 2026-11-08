@@ -12,12 +12,16 @@
     defined(SUITE_APP_ARCADE2) || \
     defined(SUITE_APP_POCKET11) || \
     defined(SUITE_APP_ARCADE3) || \
-    defined(SUITE_APP_MUSIC2)
+    defined(SUITE_APP_MUSIC2) || \
+    defined(SUITE_APP_DEV2)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_MUSIC2)
+#if defined(SUITE_APP_DEV2)
+#include "Dev14Collection.h"
+using ActiveApp=Dev14Collection;
+#elif defined(SUITE_APP_MUSIC2)
 #include "Music13Collection.h"
 using ActiveApp=Music13Collection;
 #elif defined(SUITE_APP_ARCADE3)
