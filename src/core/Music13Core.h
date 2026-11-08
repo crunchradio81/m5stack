@@ -17,7 +17,8 @@ struct Sequence {
     memset(muted,0,sizeof(muted));bpm=120;
   }
   bool set(unsigned track,unsigned step,unsigned pitch){
-    if(track>=Tracks||step>=Steps||pitch>127)return false;
+    if(track>=Tracks||step>=Steps||pitch>108||
+     (pitch!=0&&pitch<24))return false;
     note[track][step]=static_cast<uint8_t>(pitch);return true;
   }
   uint8_t get(unsigned track,unsigned step)const{
