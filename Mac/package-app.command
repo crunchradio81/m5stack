@@ -31,8 +31,8 @@ cat > "$DEST/Contents/Info.plist" <<'PLIST'
   <key>CFBundleName</key><string>Cardputer Remote Mac</string>
   <key>CFBundleDisplayName</key><string>Cardputer Remote</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.27.0</string>
-  <key>CFBundleVersion</key><string>27</string>
+  <key>CFBundleShortVersionString</key><string>0.28.0</string>
+  <key>CFBundleVersion</key><string>28</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>NSHumanReadableCopyright</key>
   <string>Open-source software; personal-use remote control.</string>
