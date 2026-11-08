@@ -29,6 +29,7 @@ APPS = (
     ("sd_wireless", "WIRELESS", "Wireless Field Lab"),
     ("sd_audiolab", "AUDIOLAB", "Audio Recorder and Lab"),
     ("sd_filetools", "FILETOOLS", "Safe SD File Tools"),
+    ("sd_nettools", "NETTOOLS", "Network and Internet"),
 )
 MAX_APP_BYTES = 0x300000
 
