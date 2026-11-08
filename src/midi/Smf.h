@@ -34,7 +34,7 @@ public:
     Reader() { reset(); }
     void reset() {
         source_=nullptr;tracksCount_=0;division_=0;format_=0;failed_=false;
-        memset(tracks_,0,sizeof(tracks_));
+        for(auto &track:tracks_) track=Track{};
     }
     bool open(Source& source) {
         reset();
