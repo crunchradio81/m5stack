@@ -45,7 +45,9 @@ inline bool port(const char*s,uint16_t&output){
     v=v*10+static_cast<unsigned>(*s-'0');
     if(v>65535)return false;
   }
-  if(!v)return false;output=static_cast<uint16_t>(v);return true;
+  if(!v)return false;
+  output=static_cast<uint16_t>(v);
+  return true;
 }
 inline bool assign(char*dest,size_t cap,const char*value,bool spaces){
   const size_t n=strlen(value);
