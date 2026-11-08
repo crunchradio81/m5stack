@@ -7,6 +7,13 @@ sensors, PSRAM, a camera, GPS, 5/6 GHz Wi-Fi or a headphone socket.
 Statuses: **Built source** means source code exists, not necessarily merged or hardware verified;
 **Active** means the app is under implementation; **Planned** means no claim of code.
 
+## P4 executable SD library (built source, hardware acceptance pending)
+
+A persistent factory menu launches four separately compiled SD firmware
+images into a replaceable OTA slot, using owner-controlled manifests and
+SHA256 integrity checks. Only suite-managed app IDs are allowed; this is
+not authenticated firmware or guaranteed hardware recovery. See docs/SD_LAUNCHER.md.
+
 ## P1 platform (built source, hardware acceptance pending)
 
 Home launcher, Notes editor, Calculator, read-only File Browser, Text Viewer,
@@ -27,9 +34,9 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 6. Voice Recorder — **Planned:** microphone audio to SD; no simultaneous capture/play.
 7. WAV Player — **Planned:** mono streaming.
 8. Music Tracker — **Planned:** patterns and sample-lite instruments.
-9. Piano — **Planned:** Cardputer keyboard synthesizer.
+9. Piano — **Built source as SD Music Keyboard:** real hardware pending.
 10. Drum Machine — **Planned:** pattern sequencing.
-11. Metronome — **Planned:** accurate timing/beats.
+11. Metronome — **Built source as SD app:** physical timing tests pending.
 12. Audio Level Meter — **Planned:** microphone RMS/peak.
 13. Guitar Tuner — **Planned:** microphone pitch estimator.
 14. Morse Trainer — **Planned:** generate/decode practice tones.
@@ -38,12 +45,12 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 ## P3 wireless, networking and Internet (15)
 
 16. Wi-Fi Signal Graph — **Planned**
-17. Wi-Fi Channel Analyzer — **Planned**
+17. Wi-Fi Channel Analyzer — **Built source as SD app; hardware pending**
 18. Wi-Fi Survey Notebook with manually named survey points — **Planned**
 19. Wi-Fi History Explorer / comparisons — **Planned**
 20. Wi-Fi Appearance/Disappearance Monitor — **Planned**
 21. BLE Advertisement Logger — **Planned**
-22. BLE Signal Analyzer — **Planned**
+22. BLE Signal Analyzer — **Partially built as passive SD BLE Explorer (RSSI); tracking graphs planned**
 23. BLE GATT Explorer — **Planned**, user-consented device connections only
 24. Ping / latency diagnostics — **Planned**
 25. DNS Lookup — **Planned**
