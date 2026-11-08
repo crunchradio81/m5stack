@@ -7,7 +7,7 @@
 The original M5Stack Cardputer K132 (8 MiB flash, no PSRAM) cannot
 execute ESP32 application binaries directly from FAT32 microSD. This
 project uses an **installed factory launcher** and a **replaceable OTA_0
-application partition**. The eighteen separately compiled app packages are
+application partition**. The twenty-two separately compiled app packages are
 kept on SD and copied into the OTA slot only when selected.
 
 This differs from simply showing data files on SD or compiling every
@@ -70,6 +70,14 @@ After unpacking the CI SD app pack at the FAT32 card root:
     ARCADE2.BIN
     POCKET11.APP
     POCKET11.BIN
+    ARCADE3.APP
+    ARCADE3.BIN
+    MUSIC2.APP
+    MUSIC2.BIN
+    DEV2.APP
+    DEV2.BIN
+    WEBSECURE.APP
+    WEBSECURE.BIN
     LAUNCHER.CFG  (optional saved categories/favorites/history)
   NET/
     NET.CFG  (user-owned plaintext Wi-Fi credentials)
@@ -96,7 +104,7 @@ After unpacking the CI SD app pack at the FAT32 card root:
 
 The `.APP` is a bounded ASCII manifest (name, known ID, image name,
 byte size and SHA-256). The `.BIN` is the **app-only** ESP32-S3 image,
-not a merged factory/bootloader binary. Only eighteen known suite app IDs
+not a merged factory/bootloader binary. Only twenty-two known suite app IDs
 are accepted in this first milestone. Any malformed manifest, wrong
 size, invalid image magic, or SHA mismatch cancels installation.
 
@@ -117,7 +125,8 @@ pio run -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
         -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
         -e sd_devtools -e sd_system \\
         -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
-        -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11
+        -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11 \\
+        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure
 
 # Builds on host, creates portable SD library:
 python3 tools/package-sd-apps.py \
@@ -136,7 +145,7 @@ This first install erases previous internal data/firmware so that an
 old OTA boot selection cannot conflict with the new factory layout.
 Do not execute that erase command merely to test a source branch.
 
-Alternatively, download the nineteen CI artifacts for **this same
+Alternatively, download the twenty-three CI artifacts for **this same
 commit**, including the SD app ZIP, from GitHub Actions. Prebuilt
 binaries are **unverified** until physical board acceptance.
 
@@ -149,7 +158,8 @@ binaries are **unverified** until physical board acceptance.
    Retro Arcade, Pocket Office, SD Inspector, Music Practice,
    Developer Tools, System Toolbox, IR Remote Tools, Wireless Field Lab,
    Audio Lab, Safe SD File Tools, Networking & Internet, MIDI Deep Tools, Expanded Arcade,
-   Pocket Productivity.
+   Pocket Productivity, Arcade Classics III, Music Production, Developer
+   Studio II and Verified HTTPS.
 5. Enter opens a confirmation screen. Y verifies and installs; N cancels.
 6. After complete SHA check and write, the app boots from OTA_0.
 7. **Home / Escape** in a suite-managed app restarts into the factory
@@ -158,7 +168,7 @@ binaries are **unverified** until physical board acceptance.
    to the launcher.
 
 At present, exactly **one** SD firmware image is installed in the OTA
-slot at a time. All eighteen binary images remain stored on SD. Changing apps
+slot at a time. All twenty-two binary images remain stored on SD. Changing apps
 requires reflashing that one OTA slot, not the factory launcher.
 This is normal, but flash erase/write cycles are finite: avoid using
 it as a rapid background app switcher.
@@ -210,3 +220,9 @@ P10 games: docs/P10_ARCADE2.md and docs/P10_ACCEPTANCE.md.
 P11 productivity: docs/P11_POCKET_PRODUCTIVITY.md and docs/P11_ACCEPTANCE.md.
 Launcher 2.0: docs/LAUNCHER2.md and docs/LAUNCHER2_ACCEPTANCE.md.
 The launcher itself is factory firmware, not a separate SD application.
+
+P12 Chess/Solitaire/Sudoku/Dungeon: docs/P12_ARCADE3.md.
+P13 Tracker/Drums/Chords: docs/P13_MUSIC_PRODUCTION.md.
+P14 BASIC/USB/Hex: docs/P14_DEV_STUDIO.md.
+P15 HTTPS CA/manual-coordinates: docs/P15_SECURE_WEB.md.
+All require original K132 physical QA before production release.
