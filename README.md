@@ -2,7 +2,7 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P4 source compiled in CI; P5 adds 23 further programs across four SD collections. All are still unverified on a physical original Cardputer.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**P1–P5 have passed source builds; P6 adds two new SD firmware collections and eleven developer/system program modes. Physical original K132 acceptance has not been performed.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
 ## Resident suite and SD application collections
 
@@ -29,6 +29,8 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Pocket Office collection | To-do, Contacts, Expenses, Journal, manual Calendar |
 | SD Inspector collection | Hex, CSV, bounded JSON, File Search, ASCII, Storage Analyzer |
 | Music Practice collection | Morse, Tone Generator, Drum Sequencer, Ear Trainer, Tap Tempo |
+| Developer Tools collection (P6) | BASIC Mini REPL, Scientific Calculator, Hex/ASCII Codec, CHIP-8 Emulator |
+| System Toolbox collection (P6) | Battery, Heap/CPU, Firmware, SD Card, SD Read Benchmark, SHA256, Uptime |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -41,11 +43,12 @@ Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installatio
 ~~~sh
 bash tools/run-host-tests.sh
 pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
-        -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab
+        -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
+        -e sd_devtools -e sd_system
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The ZIP contains eight manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT and MUSICLAB. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
+The ZIP contains **ten** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -55,8 +58,7 @@ firmware/configuration and must use a one-time full flash erase. Do not
 execute that without a backup and consent. [Read the exact installation
 and recovery instructions](docs/SD_LAUNCHER.md).
 
-GitHub Actions compiles the factory launcher and four SD apps as five
-separate jobs, then packages their binary images and manifests for SD.
+GitHub Actions compiles the factory launcher and ten SD app firmware images, runs portable regressions, then packages the ten manifest/binary pairs for SD.
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
@@ -201,3 +203,18 @@ interval quizzes and tap tempo. This is not a sampled instrument bank.
 Detailed controls, limits and tests:
 [program inventory](docs/P5_COLLECTIONS.md) and
 [hardware acceptance](docs/P5_ACCEPTANCE.md).
+
+## P6 — Developer Tools + System Toolbox
+
+Two additional SD firmware images contain **11 new program modes**.
+Developer Tools: bounded BASIC expression REPL (LET, PRINT, CLEAR;
+not full BASIC Studio), Scientific Calculator, ASCII/Hex Codec and
+CHIP-8 Interpreter for user-provided `/SUITE/CHIP8/*.CH8` ROMs.
+System Toolbox: estimated Battery voltage/level, Heap and CPU,
+Firmware/Partitions, SD capacity, read-only SD benchmark, SHA-256 file
+digest and monotonic uptime (not a synchronized wall clock).
+Neither collection needs Grove accessories or PSRAM.
+
+[Feature controls and limits](docs/P6_DEV_SYSTEM.md) and
+[physical acceptance gates](docs/P6_ACCEPTANCE.md). The ten SD firmware
+images remain experimental until installed/verified on the original K132.

@@ -38,4 +38,4 @@ with tempfile.TemporaryDirectory() as directory:
         raise AssertionError("Bad ESP image was incorrectly accepted")
     except ValueError:
         pass
-print("SD App Packager: PASS (four manifests, hashes and invalid image rejection)")
+print("SD App Packager: PASS (all manifests, hashes and invalid image rejection)")

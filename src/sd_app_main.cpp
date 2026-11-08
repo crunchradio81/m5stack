@@ -3,12 +3,19 @@
 #if defined(SUITE_APP_METRONOME) || defined(SUITE_APP_PIANO) || \
     defined(SUITE_APP_CHANNELS) || defined(SUITE_APP_BLE) || \
     defined(SUITE_APP_ARCADE) || defined(SUITE_APP_OFFICE) || \
-    defined(SUITE_APP_INSPECT) || defined(SUITE_APP_MUSICLAB)
+    defined(SUITE_APP_INSPECT) || defined(SUITE_APP_MUSICLAB) || \
+    defined(SUITE_APP_DEVTOOLS) || defined(SUITE_APP_SYSTEM)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_ARCADE)
+#if defined(SUITE_APP_DEVTOOLS)
+#include "DevCollection.h"
+using ActiveApp=DevCollection;
+#elif defined(SUITE_APP_SYSTEM)
+#include "SystemCollection.h"
+using ActiveApp=SystemCollection;
+#elif defined(SUITE_APP_ARCADE)
 #include "ArcadeCollection.h"
 using ActiveApp=ArcadeCollection;
 #elif defined(SUITE_APP_OFFICE)

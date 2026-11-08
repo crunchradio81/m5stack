@@ -77,3 +77,14 @@ Do not claim releases pass until the board-specific evidence exists.
 - **Still pending:** physical original K132 flash/return-to-factory,
   SD persistence, display, keyboard, speaker and battery acceptance.
 - The rest of the 94-program project backlog remains open.
+
+## P6 — Developer Tools and System Toolbox
+
+- Source: BASIC Mini expression REPL, scientific math, hex/ASCII codec,
+  CHIP-8 VM with bounded 3584-byte ROM and 4 KiB emulator memory.
+- Source: Battery, free heap/CPU, firmware/partitions, SD card info,
+  read-only throughput benchmark, SHA-256 SD app digest, uptime.
+- Ten known SD firmware IDs, unchanged factory/OTA flash layout.
+- Expanded host regressions, firmware compilation and SD image packing.
+- **Gate pending:** physical original K132 SD boot/return, CHIP-8 keyboard,
+  battery readout, timing/heap and OTA recovery.

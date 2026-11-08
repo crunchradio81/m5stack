@@ -22,7 +22,8 @@ inline bool authorizedId(const char* id) {
     return equals(id,"METRONOME")||equals(id,"PIANO")||
            equals(id,"CHANNELS")||equals(id,"BLE")||
            equals(id,"ARCADE")||equals(id,"OFFICE")||
-           equals(id,"INSPECT")||equals(id,"MUSICLAB");
+           equals(id,"INSPECT")||equals(id,"MUSICLAB")||
+           equals(id,"DEVTOOLS")||equals(id,"SYSTEM");
 }
 inline bool safeFilename(const char *s) {
     const size_t n=strlen(s);
