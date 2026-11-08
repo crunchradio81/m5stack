@@ -54,7 +54,21 @@ inline bool survey(const char*line,Survey&out){
  if(!decimal(s,magnitude) || magnitude>127 || col[3][0]!='-')return false;
  const int rssi=-static_cast<int>(magnitude);
  if(rssi>0||rssi<-127)return false;
- if(*cursor && *cursor!='"' && *cursor!='\n')return false;
+ if(*cursor!='"')return false;
+ ++cursor;
+ while(*cursor){
+  if(*cursor=='"'){
+   ++cursor;
+   if(*cursor=='"'){++cursor;continue;}
+   if(*cursor=='\r')++cursor;
+   if(*cursor=='\n')++cursor;
+   if(*cursor)return false;
+   break;
+  }
+  const unsigned char ch=static_cast<unsigned char>(*cursor++);
+  if(ch<32||ch>126)return false;
+ }
+ if(cursor[-1]!='"' && cursor[-1]!='\n' && cursor[-1]!='\r')return false;
  Survey record;
  record.uptime=time;record.rssi=rssi;record.channel=static_cast<unsigned>(ch);
  strcpy(record.bssid,col[2]);out=record;return true;
