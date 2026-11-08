@@ -54,16 +54,16 @@ inline bool field(const char *&s,char *out,size_t cap,bool last) {
     size_t n=0;
     if(*s=='"') {
         ++s;
+        bool closed=false;
         while(*s) {
             if(*s=='"') {
                 ++s;
-                if(*s!='"') break;
+                if(*s!='"') { closed=true;break; }
             }
             if(n+1>=cap) return false;
             out[n++]=*s++;
         }
-        // A quoted field must end with a close quote and then delimiter.
-        if(*(s-1)!='"') return false;
+        if(!closed) return false;
     } else {
         while(*s && *s!=',' && *s!='\r' && *s!='\n') {
             if(n+1>=cap || *s=='"') return false;
