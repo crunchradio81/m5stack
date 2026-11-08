@@ -43,6 +43,8 @@ APPS = (
     ("sd_gameboy", "GAMEBOY", "Original Game Boy Emulator"),
     ("sd_field2", "FIELD2", "Wireless History Clock LAN Lab"),
     ("sd_macremote", "MACREMOTE", "macOS Macro Keys and Remote Mouse"),
+    ("sd_lanfiles", "LANFILES", "Authenticated LAN File Transfer"),
+    ("sd_gattview", "GATTVIEW", "BLE GATT Metadata Explorer"),
 )
 MAX_APP_BYTES = 0x300000
 
