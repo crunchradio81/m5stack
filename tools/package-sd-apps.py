@@ -33,6 +33,7 @@ APPS = (
     ("sd_miditools", "MIDITOOLS", "MIDI Deep Tools"),
     ("sd_arcade2", "ARCADE2", "Expanded Arcade"),
     ("sd_pocket11", "POCKET11", "Pocket Productivity"),
+    ("sd_arcade3", "ARCADE3", "Arcade Classics III"),
 )
 MAX_APP_BYTES = 0x300000
 
