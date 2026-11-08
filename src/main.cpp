@@ -11,6 +11,7 @@
 #include "WifiLogger.h"
 #include "MidiApp.h"
 #include "PocketApps.h"
+#include "SDAppLauncher.h"
 
 namespace {
 constexpr uint16_t BG=0x0841, PANEL=0x10C4, SELECTED=0x2673;
@@ -21,9 +22,9 @@ constexpr char NOTE_PATH[]="/SUITE/NOTES.TXT";
 constexpr char CONFIG_PATH[]="/SUITE/CONFIG.TXT";
 constexpr uint8_t BRIGHTNESS[]={64,128,192,255};
 
-enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, WifiLog, WifiLogView, WifiLogDetail, WifiLogErase, Midi, System, Settings, Stopwatch, Countdown, Units, Programmer };
-const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","Wi-Fi Logger","MIDI Studio","System Info","Settings","Stopwatch","Countdown","Unit Converter","Programmer"};
-constexpr int APP_COUNT=12;
+enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, WifiLog, WifiLogView, WifiLogDetail, WifiLogErase, Midi, System, Settings, Stopwatch, Countdown, Units, Programmer, SDApps };
+const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","Wi-Fi Logger","MIDI Studio","System Info","Settings","Stopwatch","Countdown","Unit Converter","Programmer","SD App Library"};
+constexpr int APP_COUNT=13;
 Screen screen=Screen::Home;
 int appSelected=0, settingsSelected=0;
 bool sdReady=false, noteWritable=true, dirty=true, scanActive=false, autosave=true;
@@ -43,6 +44,7 @@ WifiLogger wifiLogger;
 MidiApp midiApp;
 uint32_t lastMidiRefresh=0, lastPocketRefresh=0;
 PocketApps pocketApps;
+SDAppLauncher sdAppLauncher;
 
 bool has(const Keyboard_Class::KeysState &k,char c) {
     for(char value:k.word) if(value==c) return true;
@@ -408,6 +410,7 @@ void render() {
         case Screen::WifiLogDetail:drawWifiLogDetail();break;
         case Screen::WifiLogErase:drawWifiLogErase();break;
         case Screen::Midi:midiApp.render();break;
+        case Screen::SDApps:sdAppLauncher.render();break;
         case Screen::Stopwatch:case Screen::Countdown:
         case Screen::Units:case Screen::Programmer:
             pocketApps.draw(millis());break;
@@ -431,6 +434,7 @@ void openApp(int index) {
         case 9:screen=Screen::Countdown;pocketApps.enter(PocketApps::Mode::Countdown);break;
         case 10:screen=Screen::Units;pocketApps.enter(PocketApps::Mode::Units);break;
         case 11:screen=Screen::Programmer;pocketApps.enter(PocketApps::Mode::Programmer);break;
+        case 12:screen=Screen::SDApps;sdAppLauncher.enter(sdReady);break;
     }
     dirty=true;
 }
@@ -573,6 +577,8 @@ void input(const Keyboard_Class::KeysState &k) {
         case Screen::Midi:
             midiApp.onKey(k,sdReady);
             break;
+        case Screen::SDApps:
+            sdAppLauncher.onKey(k,sdReady);break;
         case Screen::Stopwatch:case Screen::Countdown:
         case Screen::Units:case Screen::Programmer:
             pocketApps.onKey(k,millis());break;
