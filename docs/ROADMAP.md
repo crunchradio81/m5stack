@@ -133,3 +133,29 @@ Do not claim releases pass until the board-specific evidence exists.
   .KAR media validation, SD file persistence and OTA return.
 - **Not yet implemented:** high-quality GM sample banks, multitrack
   editing, full sequencer/tracker, seek and downloadable patch banks.
+
+## P10 — Expanded Arcade
+
+- Five fixed-memory games in ARCADE2: Falling Blocks, two-player Checkers,
+  Memory Match, uptime-based Virtual Pet, short Text Adventure.
+- Host tests and full original K132 build PASS; physical board tests pending.
+- Chess, Solitaire, Sudoku, larger Dungeon Crawler and saved scores planned.
+
+## P11 — Pocket Productivity
+
+- Bounded ASCII Text Editor, 6x6 integer Spreadsheet, Flashcards,
+  display QR Code, and random alphanumeric string generator.
+- Full original K132 build PASS; hardware SD persistence and QR
+  readability acceptance not performed.
+- Rich text, spreadsheets with formulas, authenticated vault and
+  full line-numbered BASIC Studio still planned.
+
+## Launcher 2.0 — resident factory browser
+
+- Group installed SD firmware packages into category views, favorites
+  and four-item recent list with case-insensitive search.
+- Strict 512-byte owner preferences on SD, no silent malformed overwrite,
+  explicit Y/N confirmation before OTA installation.
+- Factory firmware updates required; original app/OTA partition table
+  remains unchanged. Host regressions and full build must pass; physical
+  K132 USB recovery and OTA return tests are outstanding.

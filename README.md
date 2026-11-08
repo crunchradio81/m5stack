@@ -2,7 +2,7 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P6 source builds passed; P7 adds IR, Wireless Field, Audio Lab and restricted SD File Tools as four further firmware collections. No actual original K132 hardware acceptance has been performed.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**P1–P11 source builds have passed CI, including 18 separate SD application images. Launcher 2.0 adds categories/search/favorites and is under verification. No physical original K132 has been tested.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
 ## Resident suite and SD application collections
 
@@ -20,7 +20,7 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Countdown (P3) | Editable HHMMSS duration, pause/resume/reset, visual completion notice |
 | Unit Converter (P3) | Sixteen unit conversions across five measurement categories |
 | Programmer Calculator (P3) | Binary/octal/decimal/hex values and 32-bit AND, OR, XOR, NOT and shifts |
-| SD App Library (P4) | Read manifests and install selected app from SD into separate OTA partition |
+| SD App Library (Launcher 2.0) | Categories, favorites, recent apps, search, verified manifest browsing and confirmed OTA install |
 | Metronome (SD firmware) | 30–260 BPM, accents, 2–12 beats and subdivisions using built-in speaker |
 | Music Keyboard (SD firmware) | Play 13-note layout on built-in speaker, octave and volume controls |
 | Wi-Fi Channel Analyzer (SD firmware) | Passive 2.4 GHz survey, per-channel counts, peak RSSI and heuristic recommendation |
@@ -37,6 +37,8 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Safe SD File Tools collection (P7) | File Manager, Backup, Restore, Name Search, Storage Inventory |
 | Networking & Internet collection (P8) | Wi-Fi Profile, DNS, ICMP Ping, NTP, HTTP Text, mDNS, MQTT, LAN Chat, RSS title |
 | MIDI Deep Tools collection (P9) | Track Analyzer, Piano Roll, Lyrics Catalog, Favorites, Tempo Map |
+| Expanded Arcade (P10) | Falling Blocks, Two-player Checkers, Memory Match, Virtual Pet, Text Adventure |
+| Pocket Productivity (P11) | SD Text Editor, 6x6 Spreadsheet, Flashcards, QR Generator, Random String Maker |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -52,11 +54,11 @@ pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_b
         -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
         -e sd_devtools -e sd_system \\
         -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
-        -e sd_nettools -e sd_miditools
+        -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The ZIP contains **sixteen** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS and MIDITOOLS. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
+The ZIP contains **eighteen** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS, MIDITOOLS, ARCADE2 and POCKET11. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -66,7 +68,7 @@ firmware/configuration and must use a one-time full flash erase. Do not
 execute that without a backup and consent. [Read the exact installation
 and recovery instructions](docs/SD_LAUNCHER.md).
 
-GitHub Actions compiles the factory launcher and sixteen SD app firmware images, runs portable regressions and packages sixteen manifest/binary pairs for SD.
+GitHub Actions compiles the factory launcher and eighteen SD app firmware images, runs portable regressions and packages eighteen manifest/binary pairs for SD.
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
@@ -267,3 +269,29 @@ list and Tempo Map (five submenu tools). This is **not** a full
 piano-roll editor, karaoke game or ordered playlist system. Details in
 [the P9 feature document](docs/P9_MIDI_EXPANSION.md) and
 [hardware checklist](docs/P9_ACCEPTANCE.md).
+
+## P10 — Expanded Arcade and P11 — Pocket Productivity
+
+The P10 **ARCADE2** image has five offline games: Falling Blocks, local
+two-player Checkers, Memory Match, uptime-based Virtual Pet, and an
+original short Text Adventure. P11 **POCKET11** provides a bounded ASCII
+text editor, 6×6 integer spreadsheet, search/read-only flashcards,
+QR code generator and random-string maker. These applications
+are separate SD collections, not individually flashable game binaries.
+Details: [P10 controls](docs/P10_ARCADE2.md),
+[P10 acceptance](docs/P10_ACCEPTANCE.md),
+[P11 controls](docs/P11_POCKET_PRODUCTIVITY.md) and
+[P11 acceptance](docs/P11_ACCEPTANCE.md).
+
+## Launcher 2.0 — categories, favorites, recent apps and search
+
+The resident **factory** SD launcher now supports:
+**C** category filtering, **S** search by name/ID, **F** favorite,
+**V** recent four apps, **R** rescan, Fn Up/Down navigation, and Enter
+then **Y/N** to explicitly install/cancel.
+Favorites/history save in bounded `/SUITE/APPS/LAUNCHER.CFG`
+with `.NEW` and `.BAK` handling. A malformed file is read-only,
+not silently replaced. This changes the factory firmware and therefore
+requires a deliberate factory USB update, while preserving the existing
+custom partition table. Read [Launcher 2.0 controls](docs/LAUNCHER2.md)
+and [physical acceptance](docs/LAUNCHER2_ACCEPTANCE.md).

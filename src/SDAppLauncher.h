@@ -1,7 +1,7 @@
 #pragma once
-// Permanent factory-partition launcher for suite-managed Cardputer K132
-// application binaries stored on FAT32 SD. Installs only the app OTA slot.
-// Before release, physical board boot/recovery acceptance is REQUIRED.
+// Permanent factory launcher for suite-owned original Cardputer K132 SD apps.
+// P12 categories, search, favorites, recent app list and explicit OTA install.
+// Source/CI validation is not proof of safe original hardware recovery.
 #include <Arduino.h>
 #include <SD.h>
 #include <Update.h>
@@ -10,16 +10,18 @@
 #include <esp_partition.h>
 #include <mbedtls/sha256.h>
 #include "core/SDAppManifest.h"
+#include "core/Launcher2Core.h"
 
 class SDAppLauncher {
 public:
     static const char* directory(){return "/SUITE/APPS";}
     void enter(bool ready) {
-        confirming_=false;selected_=0;count_=0;
+        category_=suite::launch2::Category::All;
+        searching_=confirming_=false;query_[0]=0;
         refresh(ready);
     }
     void refresh(bool ready) {
-        count_=0;selected_=0;confirming_=false;
+        count_=visibleCount_=selected_=0;confirming_=searching_=false;
         if(!ready){status_="Insert FAT32 SD card";return;}
         if(!SD.exists("/SUITE"))SD.mkdir("/SUITE");
         if(!SD.exists(directory()) && !SD.mkdir(directory())) {
@@ -32,7 +34,8 @@ public:
         while(count_<suite::appmanifest::MaxApps) {
             File file=dir.openNextFile();
             if(!file) break;
-            if(!file.isDirectory() && file.size()<=suite::appmanifest::MaxManifest) {
+            if(!file.isDirectory() &&
+               file.size()<=suite::appmanifest::MaxManifest) {
                 String filename=file.name();
                 const int slash=filename.lastIndexOf('/');
                 if(slash>=0)filename=filename.substring(slash+1);
@@ -42,8 +45,7 @@ public:
                     if(file.readBytes(data,size)==size) {
                         suite::appmanifest::App parsed;
                         if(suite::appmanifest::parse(data,size,parsed)) {
-                            apps_[count_]=parsed;
-                            ++count_;
+                            apps_[count_]=parsed;++count_;
                         }
                     }
                 }
@@ -51,71 +53,173 @@ public:
             file.close();
         }
         dir.close();
-        // Deterministic menu ordering, independent of FAT directory order.
         for(int i=0;i<count_;++i)
             for(int j=i+1;j<count_;++j)
                 if(strcmp(apps_[j].id,apps_[i].id)<0) {
                     auto temp=apps_[i];apps_[i]=apps_[j];apps_[j]=temp;
                 }
-        status_=count_?"Select app to install":"No valid .APP manifests found";
+        loadPreferences();
+        rebuild();
+        if(writable_)
+            status_=count_?"Enter install, C category":"No valid .APP manifests";
     }
-    void onKey(const Keyboard_Class::KeysState& k,bool ready) {
+    void onKey(const Keyboard_Class::KeysState&k,bool ready) {
         if(confirming_) {
             if(letter(k,'n')||k.backspace){confirming_=false;return;}
             if(letter(k,'y')) {
                 confirming_=false;
-                if(count_>0) install(apps_[selected_]);
+                if(visibleCount_>0)install(apps_[visible_[selected_]]);
             }
             return;
         }
-        if(k.up && selected_>0)--selected_;
-        if(k.down && selected_+1<count_)++selected_;
-        if(letter(k,'r'))refresh(ready);
-        if(k.enter && count_) {
-            confirming_=true;status_="Install to app flash? Y/N";
+        if(searching_) {
+            if(k.enter){searching_=false;return;}
+            if(k.backspace){
+                const size_t n=strlen(query_);
+                if(n)query_[n-1]=0;
+            }else if(!k.ctrl&&!k.alt&&!k.fn){
+                for(char c:k.word){
+                    if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||
+                         (c>='0'&&c<='9')||c==' '||c=='-'))continue;
+                    const size_t n=strlen(query_);
+                    if(n+1<sizeof(query_)){query_[n]=c;query_[n+1]=0;}
+                }
+            }
+            rebuild();return;
+        }
+        if(k.up&&selected_>0)--selected_;
+        if(k.down&&selected_+1<visibleCount_)++selected_;
+        if(letter(k,'r')){refresh(ready);return;}
+        if(letter(k,'c')){
+            const auto next=static_cast<unsigned>(category_)+1;
+            category_=static_cast<suite::launch2::Category>(
+              next>=static_cast<unsigned>(suite::launch2::Category::Count)?0:next);
+            rebuild();return;
+        }
+        if(letter(k,'v')){
+            category_=suite::launch2::Category::Recent;
+            rebuild();return;
+        }
+        if(letter(k,'s')){searching_=true;return;}
+        if(k.backspace&&query_[0]){query_[0]=0;rebuild();return;}
+        if(letter(k,'f')&&visibleCount_>0){
+            if(!writable_){status_="Preferences invalid; protected";return;}
+            const char* id=apps_[visible_[selected_]].id;
+            auto before=prefs_;
+            if(!prefs_.toggle(id)||!savePreferences()){
+                prefs_=before;status_="Favorite save failed";return;
+            }
+            rebuild();
+            status_="Favorite list saved";
+            return;
+        }
+        if(k.enter&&visibleCount_>0){
+            confirming_=true;
+            status_="Install SD app into OTA_0? Y/N";
         }
     }
     void render()const {
-        auto &d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,panel=0x10c4,white=0xffff,cyan=0x05ff,
-                           muted=0xad55,selected=0x2673;
+        auto&d=M5Cardputer.Display;
+        constexpr uint16_t bg=0x0841,panel=0x10c4,white=0xffff,
+          cyan=0x05ff,muted=0xad55,selected=0x2673,green=0x5fe9;
         d.fillScreen(bg);d.fillRect(0,0,240,23,panel);
-        d.setTextColor(white,panel);d.setCursor(5,7);d.print("SD APPLICATIONS");
-        d.setTextColor(cyan,panel);d.setCursor(207,7);d.print("P4");
+        d.setTextColor(white,panel);d.setCursor(5,7);
+        d.print("SD APP LIBRARY");
+        d.setTextColor(cyan,panel);d.setCursor(207,7);d.print("L2");
         d.fillRect(0,116,240,19,panel);
         d.setTextColor(muted,panel);d.setCursor(4,121);
-        d.print(confirming_?"Y install / N cancel":"Enter install | R rescan");
-        d.setTextColor(cyan,bg);d.setCursor(6,27);
-        d.print(String(count_)+" stored SD programs");
-        if(confirming_ && count_) {
-            d.setTextColor(white,bg);d.setCursor(5,48);
-            d.print(String("Flash ")+apps_[selected_].name+" ?");
+        d.print(confirming_?"Y install / N cancel":
+                searching_?"Type search / Enter finish":
+                "C category F fav S find V recent");
+        d.setTextColor(cyan,bg);d.setCursor(5,26);
+        d.print(String(suite::launch2::categoryName(category_))+" "+
+                visibleCount_+"/"+count_+" apps");
+        if(query_[0]){
+            d.setTextColor(green,bg);d.setCursor(5,36);
+            d.print(String("Search: ")+query_);
+        }
+        if(confirming_ && visibleCount_>0) {
+            const auto&a=apps_[visible_[selected_]];
+            d.setTextColor(white,bg);d.setCursor(5,50);
+            d.print(String("Install ")+a.name+"?");
             d.setTextColor(muted,bg);d.setCursor(5,67);
-            d.print("Factory launcher is retained.");
-            d.setCursor(5,80);d.print("Requires a reboot.");
-        } else {
-            const int top=selected_>=6?selected_-5:0;
-            for(int i=top;i<count_ && i<top+6;++i) {
-                const int y=40+(i-top)*11;
+            d.print("Factory stays in own partition.");
+            d.setCursor(5,81);d.print("Boots selected app after write.");
+        }else{
+            const int first=selected_>=6?selected_-5:0;
+            for(int i=first;i<visibleCount_&&i<first+6;++i){
+                const auto&a=apps_[visible_[i]];
+                const int y=44+(i-first)*10;
                 if(i==selected_)d.fillRect(3,y-1,233,11,selected);
                 d.setTextColor(white,i==selected_?selected:bg);
-                d.setCursor(6,y);d.print(String(apps_[i].name).substring(0,35));
+                d.setCursor(5,y);
+                d.print(String(prefs_.favorite(a.id)?"* ":"  ")+
+                        String(a.name).substring(0,35));
             }
         }
-        d.setTextColor(muted,bg);d.setCursor(5,106);
+        d.setTextColor(muted,bg);d.setCursor(5,108);
         d.print(status_.substring(0,38));
     }
 private:
     suite::appmanifest::App apps_[suite::appmanifest::MaxApps];
-    int count_=0,selected_=0;
-    bool confirming_=false;
+    uint8_t visible_[suite::appmanifest::MaxApps]={};
+    int count_=0,visibleCount_=0,selected_=0;
+    suite::launch2::Preferences prefs_;
+    suite::launch2::Category category_=suite::launch2::Category::All;
+    char query_[17]={};
+    bool confirming_=false,searching_=false,writable_=true;
     String status_;
-    static bool symbol(const Keyboard_Class::KeysState& k,char c) {
+    static bool symbol(const Keyboard_Class::KeysState&k,char c){
         for(char v:k.word)if(v==c)return true;
         return false;
     }
-    static bool letter(const Keyboard_Class::KeysState& k,char c) {
+    static bool letter(const Keyboard_Class::KeysState&k,char c){
         return symbol(k,c)||symbol(k,static_cast<char>(c-'a'+'A'));
+    }
+    void rebuild(){
+        selected_=0;
+        visibleCount_=suite::launch2::filter(apps_,count_,category_,
+               prefs_,query_,visible_,suite::appmanifest::MaxApps);
+    }
+    void loadPreferences(){
+        writable_=true;prefs_.clear();
+        const char*path="/SUITE/APPS/LAUNCHER.CFG";
+        if(!SD.exists(path))return;
+        File f=SD.open(path,FILE_READ);
+        if(!f||f.isDirectory()||f.size()>suite::launch2::Preferences::MaxBytes){
+            if(f)f.close();
+            writable_=false;status_="Preferences invalid: read-only";return;
+        }
+        char text[suite::launch2::Preferences::MaxBytes+1]={};
+        const size_t n=f.size();
+        const bool ok=f.readBytes(text,n)==n;f.close();
+        if(!ok||!prefs_.parse(text,n)){
+            writable_=false;status_="Corrupt favorites protected";
+        }
+    }
+    bool savePreferences(){
+        if(!writable_)return false;
+        char data[suite::launch2::Preferences::MaxBytes+1]={};
+        const size_t n=prefs_.encode(data,sizeof(data));
+        if(!n)return false;
+        const char*path="/SUITE/APPS/LAUNCHER.CFG";
+        const char*temp="/SUITE/APPS/LAUNCHER.NEW";
+        const char*backup="/SUITE/APPS/LAUNCHER.BAK";
+        if(SD.exists(temp)&&!SD.remove(temp))return false;
+        File f=SD.open(temp,FILE_WRITE);
+        if(!f)return false;
+        const bool ok=f.write(reinterpret_cast<const uint8_t*>(data),n)==n;
+        f.flush();f.close();if(!ok)return false;
+        const bool had=SD.exists(path);
+        if(had){
+            if(SD.exists(backup)&&!SD.remove(backup))return false;
+            if(!SD.rename(path,backup))return false;
+        }
+        if(!SD.rename(temp,path)){
+            if(had)SD.rename(backup,path);
+            return false;
+        }
+        return true;
     }
     static bool verifySha(File& input,const char* expected,uint32_t length) {
         if(!input.seek(0))return false;
@@ -196,6 +300,10 @@ private:
         }
         // Arduino Update.end() already sets next boot slot. A suite SD app
         // resets the boot target to factory immediately upon boot.
+        // Only record a recent app after OTA reports a completed write.
+        // Preference-save failure must not turn a valid install into a
+        // half-written firmware; the app boot remains owner-requested.
+        if(writable_){prefs_.remember(app.id);savePreferences();}
         feedback("App installed. Rebooting...");
         delay(250);
         ESP.restart();

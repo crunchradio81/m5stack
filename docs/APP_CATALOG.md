@@ -9,7 +9,7 @@ Statuses: **Built source** means source code exists, not necessarily merged or h
 
 ## P4 executable SD library (built source, hardware acceptance pending)
 
-A persistent factory menu launches eight separately compiled SD firmware
+A persistent factory menu launches eighteen separately compiled SD firmware
 images into a replaceable OTA slot, using owner-controlled manifests and
 SHA256 integrity checks. Only suite-managed app IDs are allowed; this is
 not authenticated firmware or guaranteed hardware recovery. See docs/SD_LAUNCHER.md.
@@ -70,16 +70,16 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P4 productivity (14)
 
-39. Full Text Editor — **Planned**
+39. Full Text Editor — **P11 partial: bounded 1023-byte ASCII editor, multi-file editor planned**
 40. Searchable Notebook — **Planned**
 41. To-Do Manager — **P5 source; hardware pending**
 42. Calendar — **P5 source; hardware pending** (needs clock sync/manual date)
 43. Contacts — **P5 source; hardware pending**
 44. Scientific Calculator — **P6 source; hardware pending**
 45. Programmer Calculator — **Built source, hardware pending**
-46. Spreadsheet Mini — **Planned**
+46. Spreadsheet Mini — **P11 source: 6x6 integer cells and row sums, formulas planned**
 47. Expenses / Budget Tracker — **P5 source; hardware pending**
-48. Password Generator — **Planned** (system RNG)
+48. Password Generator — **P11 partial: non-audited random-string tool, no vault**
 49. Encrypted Password Vault — **Planned** (security review required)
 50. Personal Journal — **P5 source; hardware pending**
 51. Stopwatch / Lap Timer — **Built source, hardware pending**
@@ -97,7 +97,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 60. Binary/Octal/Decimal/Hex Converter — **Partially in Programmer Calculator (source)**
 61. Logic and Bit Calculator — **Partially in Programmer Calculator (source)**
 62. JSON Inspector — **P5 source; hardware pending**
-63. QR Code Generator — **Planned** (display-only)
+63. QR Code Generator — **P11 source: display-only QR, physical scan pending**
 64. CHIP-8 Interpreter — **P6 source; physical keyboard/ROM test pending**
 65. SD Benchmark — **P6 source: read-only benchmark; hardware pending**
 
@@ -112,19 +112,19 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 ## P7 arcade, puzzles and interactive (15)
 
 71. Snake — **P5 source; hardware pending**
-72. Falling Blocks — **Planned**
+72. Falling Blocks — **P10 source; hardware pending**
 73. Dungeon Crawler — **Planned**
 74. Minesweeper — **P5 source; hardware pending**
 75. Chess — **Planned**
-76. Checkers — **Planned**
+76. Checkers — **P10 two-player source; physical hardware pending**
 77. Solitaire — **Planned**
 78. Sokoban — **P5 source; hardware pending**
 79. 2048 — **P5 source; hardware pending**
 80. Pong — **P5 source; hardware pending**
 81. Breakout — **P5 source; hardware pending**
 82. Word Guess — **P5 source; hardware pending**
-83. Text Adventure Interpreter — **Planned**
-84. Virtual Pet — **Planned**
+83. Text Adventure Interpreter — **P10 partial: one original branching story, interpreter planned**
+84. Virtual Pet — **P10 uptime-based source; persistent saves planned**
 85. Retro Arcade Frontend with saves / high scores — **P5 source; hardware pending**
 
 ## P8 core system utilities (9)
@@ -230,3 +230,25 @@ Details: docs/P7_FIELD_MEDIA_FILES_IR.md and docs/P7_ACCEPTANCE.md.
   docs/P9_MIDI_EXPANSION.md and docs/P9_ACCEPTANCE.md.
 - **Still planned:** sample GM patches, advanced tracker, MIDI seeking,
   chord labels, full playlist editor and rich karaoke graphics.
+
+## P10 arcade + P11 productivity + Launcher 2.0 progress
+
+- P10 `ARCADE2` source: Falling Blocks, 2-player Checkers, Memory Match,
+  uptime-based Virtual Pet and short original Text Adventure. **Five
+  program modes in one SD image**, host and firmware CI passed.
+- P11 `POCKET11` source: 1023-byte text editor, 6×6 spreadsheet,
+  flashcard trainer, display-only QR code generator, bounded random
+  alphanumeric string maker. **Five modes in one SD image**, CI passed.
+- Launcher 2.0 resident factory browser: categories, bounded
+  case-insensitive search, favorites, four-item recent history,
+  preferences safely stored on SD, explicit Y/N install confirmation.
+- Recognized **18 installable SD firmware images** with .APP/.BIN pairs.
+  Launcher 2.0 is a factory change, **not a 19th SD image**.
+- Original physical K132 OTA/recovery/audio/keyboard/SD acceptance
+  **NOT PERFORMED**. Do not interpret build success as release certification.
+- Still unfinished in original 94 catalog: Chess, Solitaire, Sudoku,
+  Dungeon Crawler, sampled GM patches, full BASIC Studio, encrypted
+  vault, rich text, secure HTTPS, full RSS and other planned entries.
+
+P10 details: docs/P10_ARCADE2.md. P11: docs/P11_POCKET_PRODUCTIVITY.md.
+Launcher: docs/LAUNCHER2.md and docs/LAUNCHER2_ACCEPTANCE.md.
