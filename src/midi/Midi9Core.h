@@ -35,7 +35,10 @@ public:
       }
     }else if((e.kind==smf::Kind::Lyric||e.kind==smf::Kind::Text)&&
              e.text[0]&&lyrics_<MaxLyrics){
-      strncpy(lyric_[lyrics_],e.text,sizeof(lyric_[lyrics_])-1);
+      const size_t len=strlen(e.text);
+      const size_t n=len<sizeof(lyric_[lyrics_])-1?len:sizeof(lyric_[lyrics_])-1;
+      memcpy(lyric_[lyrics_],e.text,n);
+      lyric_[lyrics_][n]=0;
       ++lyrics_;
     }
   }
