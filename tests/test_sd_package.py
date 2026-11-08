@@ -19,6 +19,20 @@ with tempfile.TemporaryDirectory() as directory:
         dest.mkdir(parents=True)
         (dest / "firmware.bin").write_bytes(b"\xe9" + bytes([n])*127)
     archive = tmp / "apps.zip"
+    # Regression: launcher cannot parse NAME of 30+ bytes.
+    assert len(packer.APPS) <= 32
+    assert all(0 < len(label) < 30 for _, _, label in packer.APPS)
+    original = packer.APPS
+    env, app_id, _ = original[0]
+    try:
+        packer.APPS = ((env, app_id, "OVERLONG_" + "X"*25),) + original[1:]
+        try:
+            packer.package(build, tmp / "invalid-name.zip")
+            raise AssertionError("Overlong launcher NAME was accepted")
+        except ValueError:
+            pass
+    finally:
+        packer.APPS = original
     files = packer.package(build, archive)
     assert len(files) == 2 * len(packer.APPS)
     with zipfile.ZipFile(archive) as z:
