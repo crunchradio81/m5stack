@@ -18,12 +18,16 @@
     defined(SUITE_APP_THEMES) || \
     defined(SUITE_APP_NOTEBOOK) || \
     defined(SUITE_APP_SAFEFILES) || \
-    defined(SUITE_APP_GAMEBOY)
+    defined(SUITE_APP_GAMEBOY) || \
+    defined(SUITE_APP_FIELD2)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_GAMEBOY)
+#if defined(SUITE_APP_FIELD2)
+#include "Field20Collection.h"
+using ActiveApp=Field20Collection;
+#elif defined(SUITE_APP_GAMEBOY)
 #include "GameBoy19Collection.h"
 using ActiveApp=GameBoy19Collection;
 #elif defined(SUITE_APP_SAFEFILES)
