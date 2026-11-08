@@ -325,3 +325,15 @@ See docs/P16_THEME_PROFILES.md and docs/P16_ACCEPTANCE.md.
 
 P17 details: docs/P17_NOTEBOOK_SAFEFILES.md.
 Physical QA: docs/P17_ACCEPTANCE.md.
+
+## P22 — Native macOS remote backend (source and CI; hardware acceptance pending)
+
+- New macOS 14+ SwiftUI menu bar / configuration app built with Swift Package Manager.
+- Twelve editable macro keys (Unicode typing or allowlisted macOS keyboard shortcuts),
+  pointer D-pad, click, scroll, and text input from a separate original K132 SD app.
+- HMAC SHA-256 authenticated TCP with a fresh random challenge per session, monotonic
+  commands and a 256-bit random pairing secret stored in macOS Keychain.
+- Both sides require explicit opt-in, protected local configuration on FAT32 microSD,
+  macOS Accessibility permission, and a trusted local 2.4GHz network.
+- Plain TCP means **no transport secrecy**: never send passwords or secrets; use
+  a trusted LAN. Mac OS requires real-device permission and keyboard tests.
