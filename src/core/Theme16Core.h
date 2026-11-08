@@ -163,11 +163,12 @@ public:
    unsigned n=0;
    char*start=line+3;
    values[n++]=start;
-   for(char*p=start;*p;++p){
+   for(char*p=start;*p;){
     if(*p=='|'){
      if(n>=5)return false;
-     *p=0;values[n++]=p+1;
-    }
+     *p++=0;
+     values[n++]=p;
+    }else ++p;
    }
    if(n!=5||!validName(values[0]))return false;
    for(unsigned j=0;j<i;++j)
