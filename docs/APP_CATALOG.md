@@ -31,26 +31,26 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 4. MIDI Track Analyzer — **Planned:** notes, tempo map, channel programs,
    event browser and instrument activity.
 5. MIDI Playlist Manager — **Planned:** playlists/favorites, sorting, resume.
-6. Voice Recorder — **Planned:** microphone audio to SD; no simultaneous capture/play.
-7. WAV Player — **Planned:** mono streaming.
+6. Voice Recorder — **P7 source; hardware pending:** microphone audio to SD; no simultaneous capture/play.
+7. WAV Player — **P7 source; 8/16k mono PCM16 only, hardware pending:** mono streaming.
 8. Music Tracker — **Planned:** patterns and sample-lite instruments.
 9. Piano — **Built source as SD Music Keyboard:** real hardware pending.
 10. Drum Machine — **Planned:** pattern sequencing.
 11. Metronome — **Built source as SD app:** physical timing tests pending.
-12. Audio Level Meter — **Planned:** microphone RMS/peak.
-13. Guitar Tuner — **Planned:** microphone pitch estimator.
+12. Audio Level Meter — **P7 source: approximate amplitude, not calibrated RMS/SPL:** microphone RMS/peak.
+13. Guitar Tuner — **P7 partial: rough pitch estimator, accuracy pending:** microphone pitch estimator.
 14. Morse Trainer — **Planned:** generate/decode practice tones.
-15. Audio Spectrum Viewer — **Planned:** FFT of microphone samples.
+15. Audio Spectrum Viewer — **P7 partial: eight coarse bands, not a full FFT:** FFT of microphone samples.
 
 ## P3 wireless, networking and Internet (15)
 
-16. Wi-Fi Signal Graph — **Planned**
+16. Wi-Fi Signal Graph — **P7 source, 16-sample graph; hardware pending**
 17. Wi-Fi Channel Analyzer — **Built source as SD app; hardware pending**
-18. Wi-Fi Survey Notebook with manually named survey points — **Planned**
-19. Wi-Fi History Explorer / comparisons — **Planned**
-20. Wi-Fi Appearance/Disappearance Monitor — **Planned**
-21. BLE Advertisement Logger — **Planned**
-22. BLE Signal Analyzer — **Partially built as passive SD BLE Explorer (RSSI); tracking graphs planned**
+18. Wi-Fi Survey Notebook with manually named survey points — **P7 source; boot-relative CSV log**
+19. Wi-Fi History Explorer / comparisons — **P7 partial: live 16-sample signal window; full history remains planned**
+20. Wi-Fi Appearance/Disappearance Monitor — **P7 source; scan-to-scan estimate, hardware pending**
+21. BLE Advertisement Logger — **P7 source, passive SD CSV with boot-relative time**
+22. BLE Signal Analyzer — **P7 extends passive RSSI viewer; history/graphs still planned**
 23. BLE GATT Explorer — **Planned**, user-consented device connections only
 24. Ping / latency diagnostics — **Planned**
 25. DNS Lookup — **Planned**
@@ -103,11 +103,11 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P6 infrared tools (5)
 
-66. IR Universal Remote — **Planned** (transmit only)
-67. IR Device Profiles — **Planned**
-68. IR Media Center Controller — **Planned**
-69. IR Camera Shutter — **Planned**, supported camera models
-70. IR Macro/Scheduler — **Planned** (no receiver; cannot learn signals)
+66. IR Universal Remote — **P7 partial: user-configured NEC codes only; no universal DB**
+67. IR Device Profiles — **P7 source: user-supplied bounded .IRP files**
+68. IR Media Center Controller — **P7 source: commands from loaded owner profile**
+69. IR Camera Shutter — **P7 partial: owner-defined NEC shutter code, no model guarantee**
+70. IR Macro/Scheduler — **P7 partial: manual three-command macro, no scheduling/receiver**
 
 ## P7 arcade, puzzles and interactive (15)
 
@@ -129,10 +129,10 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P8 core system utilities (9)
 
-86. Full SD File Manager — **Planned**, safe operations and confirmation
+86. Full SD File Manager — **P7 partial: USER-only files, safe copy/rename/delete; full manager planned**
 87. File Search / Content Search — **P5 source; hardware pending**
 88. Storage Analyzer — **P5 source; hardware pending**
-89. Backup / Restore Manager — **Planned**
+89. Backup / Restore Manager — **P7 partial: copy USER↔BACKUP, no overwrites or whole-SD backup**
 90. Battery Monitor — **P6 source: voltage and estimated level; hardware pending**
 91. Firmware Information / Recovery Guide — **P6 partial: firmware info only**
 92. Theme Editor — **Planned**
@@ -179,3 +179,25 @@ tracks the full 94-program goal; the P5 branch does not finish all 94.
 - Full suite's 94 numbered catalog items remain **in progress**.
 
 See docs/P6_DEV_SYSTEM.md and docs/P6_ACCEPTANCE.md.
+
+## P7 four additional SD firmware collections (20 app screens)
+
+- IRTOOLS (5): NEC Remote, Device Profiles, Media Controller,
+  user-profile Camera Shutter command, manual three-step Macro.
+- WIRELESS (5): Signal Graph, Survey Notebook, AP Change Monitor,
+  passive BLE Advertisement Logger, BLE RSSI Viewer.
+- AUDIOLAB (5): mono PCM WAV Recorder, WAV Player, microphone
+  amplitude Level Meter, approximate Guitar Pitch Estimator, eight-band
+  Spectrum Viewer; microphone/speaker cannot operate simultaneously.
+- FILETOOLS (5): restricted USER File Manager, Backup to BACKUP,
+  Restore from BACKUP, Filename Search, Storage Inventory.
+- Total **14** recognized SD firmware IDs; four P7 images each contain
+  five modes. It remains **one installed OTA app at a time**, not
+  direct SD executable loading.
+- No physical original K132 has passed acceptance. No GPS, IR receiver,
+  Bluetooth Classic, 5 GHz Wi-Fi, arbitrary file system root or audio
+  codec hardware has been assumed.
+- **Full 94-program backlog is not completed.** Remaining advanced
+  apps and feature expansions are tracked in issue #3.
+
+Details: docs/P7_FIELD_MEDIA_FILES_IR.md and docs/P7_ACCEPTANCE.md.

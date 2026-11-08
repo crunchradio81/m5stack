@@ -2,7 +2,7 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P5 have passed source builds; P6 adds two new SD firmware collections and eleven developer/system program modes. Physical original K132 acceptance has not been performed.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**P1–P6 source builds passed; P7 adds IR, Wireless Field, Audio Lab and restricted SD File Tools as four further firmware collections. No actual original K132 hardware acceptance has been performed.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
 ## Resident suite and SD application collections
 
@@ -31,6 +31,10 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Music Practice collection | Morse, Tone Generator, Drum Sequencer, Ear Trainer, Tap Tempo |
 | Developer Tools collection (P6) | BASIC Mini REPL, Scientific Calculator, Hex/ASCII Codec, CHIP-8 Emulator |
 | System Toolbox collection (P6) | Battery, Heap/CPU, Firmware, SD Card, SD Read Benchmark, SHA256, Uptime |
+| IR Remote Tools collection (P7) | NEC Remote, IR Profiles, Media Remote, Camera Code, Manual IR Macro |
+| Wireless Field Lab collection (P7) | Wi-Fi Signal Graph, Survey Notebook, AP Change Monitor, BLE Log, BLE Viewer |
+| Audio Lab collection (P7) | WAV Recorder, Mono WAV Player, Level Meter, Pitch Estimate, Spectrum |
+| Safe SD File Tools collection (P7) | File Manager, Backup, Restore, Name Search, Storage Inventory |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -44,11 +48,12 @@ Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installatio
 bash tools/run-host-tests.sh
 pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
         -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
-        -e sd_devtools -e sd_system
+        -e sd_devtools -e sd_system \\
+        -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The ZIP contains **ten** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
+The ZIP contains **fourteen** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB and FILETOOLS. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -58,7 +63,7 @@ firmware/configuration and must use a one-time full flash erase. Do not
 execute that without a backup and consent. [Read the exact installation
 and recovery instructions](docs/SD_LAUNCHER.md).
 
-GitHub Actions compiles the factory launcher and ten SD app firmware images, runs portable regressions, then packages the ten manifest/binary pairs for SD.
+GitHub Actions compiles the factory launcher and fourteen SD app firmware images, runs portable regressions and packages fourteen manifest/binary pairs for SD.
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
@@ -218,3 +223,16 @@ Neither collection needs Grove accessories or PSRAM.
 [Feature controls and limits](docs/P6_DEV_SYSTEM.md) and
 [physical acceptance gates](docs/P6_ACCEPTANCE.md). The ten SD firmware
 images remain experimental until installed/verified on the original K132.
+
+## P7 — Field, audio and file collections
+
+The P7 branch adds **20 further program screens in four SD firmware images**:
+IR remote controls using user-supplied NEC profiles (TX-only GPIO44),
+passive Wi-Fi/BLE field logging (no GPS or pairing), built-in microphone
+recording and mono PCM WAV playback (mutually exclusive on original K132),
+and safe file operations restricted to `/SUITE/USER` and `/SUITE/BACKUP`.
+
+[Detailed P7 controls and known limits](docs/P7_FIELD_MEDIA_FILES_IR.md) and
+[physical acceptance gates](docs/P7_ACCEPTANCE.md). IR code examples are not
+a verified universal remote database; pitch is an estimate, not a certified
+guitar tuner. The older entire 94-item plan is still unfinished.
