@@ -26,7 +26,7 @@ inline bool authorizedId(const char* id) {
            equals(id,"DEVTOOLS")||equals(id,"SYSTEM")||
            equals(id,"IRTOOLS")||equals(id,"WIRELESS")||
            equals(id,"AUDIOLAB")||equals(id,"FILETOOLS")||
-           equals(id,"NETTOOLS")||equals(id,"MIDITOOLS")||equals(id,"ARCADE2")||equals(id,"POCKET11")||equals(id,"ARCADE3")||equals(id,"MUSIC2")||equals(id,"DEV2")||equals(id,"WEBSECURE")||equals(id,"THEMES")||equals(id,"NOTEBOOK")||equals(id,"SAFEFILES")||equals(id,"GAMEBOY")||equals(id,"FIELD2")||equals(id,"C64")||equals(id,"MACREMOTE");
+           equals(id,"NETTOOLS")||equals(id,"MIDITOOLS")||equals(id,"ARCADE2")||equals(id,"POCKET11")||equals(id,"ARCADE3")||equals(id,"MUSIC2")||equals(id,"DEV2")||equals(id,"WEBSECURE")||equals(id,"THEMES")||equals(id,"NOTEBOOK")||equals(id,"SAFEFILES")||equals(id,"GAMEBOY")||equals(id,"FIELD2")||equals(id,"C64")||equals(id,"MACREMOTE")||equals(id,"LANFILES")||equals(id,"GATTVIEW");
 }
 inline bool safeFilename(const char *s) {
     const size_t n=strlen(s);
