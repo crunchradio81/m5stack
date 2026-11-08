@@ -28,7 +28,8 @@ inline Category category(const char*id){
      !strcmp(id,"MUSICLAB")||!strcmp(id,"MIDITOOLS")||
      !strcmp(id,"AUDIOLAB"))return Category::Music;
   if(!strcmp(id,"BLE")||!strcmp(id,"CHANNELS")||
-     !strcmp(id,"WIRELESS")||!strcmp(id,"FIELD2")||!strcmp(id,"MACREMOTE")||!strcmp(id,"NETTOOLS"))
+     !strcmp(id,"WIRELESS")||!strcmp(id,"FIELD2")||!strcmp(id,"MACREMOTE")||
+     !strcmp(id,"LANFILES")||!strcmp(id,"GATTVIEW")||!strcmp(id,"NETTOOLS"))
     return Category::Wireless;
   if(!strcmp(id,"ARCADE")||!strcmp(id,"ARCADE2")||!strcmp(id,"ARCADE3")||!strcmp(id,"GAMEBOY")||!strcmp(id,"C64"))return Category::Games;
   if(!strcmp(id,"OFFICE")||!strcmp(id,"POCKET11")||
