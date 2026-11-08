@@ -1,0 +1,41 @@
+name: P29 Ubuntu local build smoke
+on:
+  push:
+    branches: [feature/cardputer-k132-p29-ubuntu-local-build]
+  workflow_dispatch:
+concurrency:
+  group: p29-local-ubuntu-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ubuntu-script-smoke:
+    name: Safe local build script, host tests, factory and MIDI app
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify no risky device commands are included
+        run: |
+          bash -n tools/ubuntu-build-suite.sh
+          if grep -En 'pio run.+(-t upload|-t erase)|esptool.*write_flash' tools/ubuntu-build-suite.sh; then
+            echo 'Hardware write command found in safe build script' >&2
+            exit 1
+          fi
+          bash tools/ubuntu-build-suite.sh list | tee /tmp/cardputer-targets.txt
+          test "$(wc -l < /tmp/cardputer-targets.txt)" -eq 31
+      - name: Set up isolated PlatformIO Core
+        run: bash tools/ubuntu-build-suite.sh setup
+      - name: Run Ubuntu headless smoke (no board connected)
+        run: bash tools/ubuntu-build-suite.sh smoke
+      - name: Verify smoke outputs are bounded ESP32 app images
+        run: |
+          test -s .pio/build/cardputer_original/firmware.bin
+          test -s .pio/build/sd_miditools/firmware.bin
+      - name: Preserve smoke logs and non-flashed firmware
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cardputer-p29-ubuntu-smoke-unverified
+          path: |
+            ~/cardputer-build-reports/
+          retention-days: 7
+          if-no-files-found: warn
