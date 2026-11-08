@@ -42,6 +42,7 @@ public:
         }
         if(endTail_ && now>=tailDue_) {
             if(loop_) restart();
+            else if(autoNext_ && songCount_>1) start((selected_+1)%songCount_);
             else {
                 playing_=false;endTail_=false;status_="Finished";
                 speakerOff();synth_.allSoundOff();
@@ -93,6 +94,9 @@ public:
         if(letter(k,'m')) {page_=Page::Mixer;return;}
         if(letter(k,'h') || symbol(k,'?')) {page_=Page::Help;return;}
         if(letter(k,'l')) {loop_=!loop_;return;}
+        if(letter(k,'a')) {autoNext_=!autoNext_;return;}
+        if(symbol(k,',')) {changeTranspose(-1);return;}
+        if(symbol(k,'.')) {changeTranspose(1);return;}
         if(letter(k,'z')) {restart();return;}
         if(letter(k,'n')) {
             if(songCount_>1) {
@@ -102,11 +106,11 @@ public:
             return;
         }
         if(symbol(k,'+') || symbol(k,'=')) {
-            if(speed_<200)speed_+=10;
+            if(speed_<200)changeSpeed(speed_+10);
             return;
         }
         if(symbol(k,'-')) {
-            if(speed_>50)speed_-=10;
+            if(speed_>50)changeSpeed(speed_-10);
             return;
         }
         if(symbol(k,']')) {
@@ -160,10 +164,10 @@ public:
         if(page_==Page::Help) {
             line(5,27,"Enter/Space/P: Play or pause");
             line(5,39,"B: Library  N: Next  Z: Restart");
-            line(5,51,"L: Loop  +/-: Tempo 50-200%");
-            line(5,63,"[ / ]: Volume  M: Track mixer");
-            line(5,75,"Mixer: Fn arrows, Enter mute");
-            line(5,87,"Mixer: S solo selected track");
+            line(5,51,"L: Loop  A: Auto-next  +/- speed");
+            line(5,63,"[ / ] volume  , / . transpose");
+            line(5,75,"M: mixer  S: solo in mixer");
+            line(5,87,"Mixer: Fn arrows / Enter mute");
             line(5,101,"Built-in speaker, no SoundFont",grey);
             return;
         }
@@ -192,10 +196,17 @@ public:
         line(5,65,String("PPQN ")+reader_.division()+
                     "  Tick "+lastTick_+"  "+numerator_+"/"+(1u<<denominatorPower_));
         line(5,78,String("Voices ")+synth_.activeVoices()+
-                    "/"+suite::midi::Synth::Voices+
-                    "  Vol "+volume_+"  Loop "+(loop_?"ON":"OFF"));
-        line(5,91,String("Last note ")+lastNote_+"  Prog "+lastProgram_);
-        line(5,104,status_,grey);
+                    "/"+suite::midi::Synth::Voices+"  Vol "+volume_+
+                    "  Loop "+(loop_?"Y":"N")+"  Next "+(autoNext_?"Y":"N"));
+        line(5,91,String("Note ")+lastNote_+"  Prog "+lastProgram_+
+                    "  Trans "+transpose_);
+        // Live chromatic note activity: 12 pitch-class columns.
+        for(int i=0;i<12;++i) {
+            const size_t count=synth_.activeForPitchClass(i);
+            const int height=static_cast<int>(count>4?12:count*3);
+            d.drawRect(5+i*19,100,16,12,grey);
+            if(height>0)d.fillRect(6+i*19,111-height,14,height,green);
+        }
     }
 
 private:
@@ -220,10 +231,10 @@ private:
     char songs_[MaxSongs][64]={{0}};
     int songCount_=0,selected_=0,trackSelected_=0,solo_=-1;
     bool manualMute_[suite::smf::Reader::MaxTracks]={};
-    bool loaded_=false,playing_=false,loop_=false,speakerOn_=false;
+    bool loaded_=false,playing_=false,loop_=false,autoNext_=false,speakerOn_=false;
     bool hasNext_=false,endTail_=false;
     Page page_=Page::Library;
-    int speed_=100;
+    int speed_=100,transpose_=0;
     uint8_t volume_=64;
     int64_t due_=0,pauseAt_=0,tailDue_=0;
     uint32_t lastTick_=0,tempo_=500000;
@@ -342,6 +353,21 @@ private:
         playing_=loaded_=hasNext_=endTail_=false;
         speakerOff();source_.close();synth_.allSoundOff();
     }
+    void changeSpeed(int newSpeed) {
+        if(newSpeed<50 || newSpeed>200 || newSpeed==speed_)return;
+        // Rescale the remaining delay to the next event immediately.
+        const int64_t reference=playing_?esp_timer_get_time():pauseAt_;
+        if(hasNext_ && due_>reference)
+            due_=reference+(due_-reference)*speed_/newSpeed;
+        speed_=newSpeed;
+    }
+    void changeTranspose(int delta) {
+        const int target=transpose_+delta;
+        if(target< -12 || target>12)return;
+        transpose_=target;
+        // Avoid orphan notes when a key is transposed while held.
+        synth_.allSoundOff();
+    }
     void schedule(const suite::smf::Event& ev) {
         const uint32_t ticks=ev.tick-lastTick_;
         const uint64_t micro=static_cast<uint64_t>(ticks)*tempo_*100u/
@@ -363,6 +389,14 @@ private:
             case suite::smf::Kind::Program:lastProgram_=ev.a;break;
             default:break;
         }
-        synth_.event(ev);
+        if(ev.kind==suite::smf::Kind::NoteOn ||
+           ev.kind==suite::smf::Kind::NoteOff) {
+            suite::smf::Event shifted=ev;
+            int pitch=static_cast<int>(ev.a)+transpose_;
+            if(pitch<0)pitch=0;
+            if(pitch>127)pitch=127;
+            shifted.a=static_cast<uint8_t>(pitch);
+            synth_.event(shifted);
+        } else synth_.event(ev);
     }
 };
