@@ -17,13 +17,15 @@ class StandaloneApp {
 public:
     void begin(){
         SPI.begin(40,39,14,12);SD.begin(12,SPI,10000000);
+        suite::skin16::colors(); // load profile after SD mount
 #if defined(SUITE_APP_METRONOME)
         M5Cardputer.Speaker.begin();
-        M5Cardputer.Speaker.setVolume(44);
+        M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
         clock_.start(micros());
 #elif defined(SUITE_APP_PIANO)
         M5Cardputer.Speaker.begin();
-        M5Cardputer.Speaker.setVolume(54);
+        volume_=suite::skin16::current().active().volume;
+        M5Cardputer.Speaker.setVolume(volume_);
 #elif defined(SUITE_APP_CHANNELS)
         WiFi.mode(WIFI_OFF);
         status_="Press S to scan";

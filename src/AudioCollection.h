@@ -248,7 +248,7 @@ private:
      file_.close();status_="Needs 8/16kHz mono PCM16";return;
    }
    M5Cardputer.Mic.end();M5Cardputer.Speaker.begin();
-   M5Cardputer.Speaker.setVolume(65);
+   M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
    M5Cardputer.Speaker.stop(0);
    rate_=info.rate;remaining_=info.bytes;playIndex_=0;active_=true;
    status_="Playing";

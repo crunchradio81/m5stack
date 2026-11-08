@@ -12,7 +12,8 @@ class MusicCollection {
 public:
     void begin(){
         SPI.begin(40,39,14,12);SD.begin(12,SPI,10000000);
-        M5Cardputer.Speaker.begin();M5Cardputer.Speaker.setVolume(42);
+        suite::skin16::colors();
+        M5Cardputer.Speaker.begin();M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
         mode_=-1;menu_=0;status_="Pick a music tool";dirty_=true;
     }
     void exit(){M5Cardputer.Speaker.stop(0);running_=false;}

@@ -241,7 +241,7 @@ private:
    if(audioOn_)return true;
    M5Cardputer.Mic.end();
    if(!M5Cardputer.Speaker.begin()){status_="Speaker init failed";return false;}
-   M5Cardputer.Speaker.setVolume(65);
+   M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
    synth_.reset();
    for(int i=0;i<4;++i)lastNote_[i]=0;
    audioOn_=true;audioIndex_=0;return true;

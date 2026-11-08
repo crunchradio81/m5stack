@@ -19,6 +19,7 @@ public:
 
     void enter(bool sdReady) {
         exit();
+        volume_=suite::skin16::current().active().volume;
         page_=Page::Library;
         refresh(sdReady);
     }
