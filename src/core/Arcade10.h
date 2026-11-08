@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <initializer_list>
 namespace suite { namespace arcade10 {
 class RNG {
 public:
@@ -28,7 +29,7 @@ public:
    if(rot_==1){sx=y;sy=3-x;}
    if(rot_==2){sx=3-x;sy=3-y;}
    if(rot_==3){sx=3-y;sy=x;}
-   return (shapes_[type_]&(static_cast<uint16_t>(1u)<<(sy*4+sx)))!=0;
+   return (shape(type_)&(static_cast<uint16_t>(1u)<<(sy*4+sx)))!=0;
  }
  uint8_t pieceType()const{return type_+1;}
  bool shift(int dx){
@@ -60,15 +61,11 @@ public:
  }
  void hardDrop(){if(over_)return;while(!collide(px_,py_+1,rot_)){++py_;++score_;}tick();}
 private:
- static constexpr uint16_t shapes_[7]={
-    0x00F0, // I
-    0x0066, // O
-    0x0072, // T
-    0x0036, // S
-    0x0063, // Z
-    0x0071, // J
-    0x0074  // L
- };
+ static uint16_t shape(unsigned type){
+   static const uint16_t s[7]={0x00F0,0x0066,0x0072,
+     0x0036,0x0063,0x0071,0x0074};
+   return s[type];
+ }
  uint8_t board_[H][W]={};
  uint8_t type_=0;
  int px_=3,py_=0,rot_=0;
@@ -247,7 +244,7 @@ public:
    return s[node_];
  }
  bool choice(unsigned oneOrTwo){
-   if(oneOrTwo!=1&&oneOrTwo!=2||node_>=6)return false;
+   if(((oneOrTwo!=1)&&(oneOrTwo!=2))||node_>=6)return false;
    static const uint8_t next[6][2]={{1,3},{2,7},{4,5},{5,7},{6,7},{6,7}};
    node_=next[node_][oneOrTwo-1];return true;
  }
