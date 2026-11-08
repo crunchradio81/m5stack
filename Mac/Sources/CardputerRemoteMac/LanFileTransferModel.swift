@@ -39,9 +39,11 @@ final class LanFileTransferModel: ObservableObject {
     var canRun: Bool {
         guard !working, keyReady, hasPython else { return false }
         if direction == .send {
-            return outgoingFile != nil && !cardputerIP.isEmpty
+            return outgoingFile != nil &&
+                Pairing26.validPrivateIPv4(cardputerIP.trimmingCharacters(in: .whitespaces))
         }
-        return inbox != nil && !macIP.isEmpty
+        return inbox != nil &&
+            Pairing26.validPrivateIPv4(macIP.trimmingCharacters(in: .whitespaces))
     }
 
     func chooseKey() {
