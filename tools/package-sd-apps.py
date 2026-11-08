@@ -31,6 +31,7 @@ APPS = (
     ("sd_filetools", "FILETOOLS", "Safe SD File Tools"),
     ("sd_nettools", "NETTOOLS", "Network and Internet"),
     ("sd_miditools", "MIDITOOLS", "MIDI Deep Tools"),
+    ("sd_arcade2", "ARCADE2", "Expanded Arcade"),
 )
 MAX_APP_BYTES = 0x300000
 
