@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include <initializer_list>
 using namespace suite::gatt23;
 int main(){
  assert(uuid("180F")&&uuid("0000180f"));
