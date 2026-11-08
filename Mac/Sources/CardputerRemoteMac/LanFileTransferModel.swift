@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import SwiftUI
+import RemoteCore
 
 /// Native Mac UI state for the exact P24/P23 LANFILES protocol.
 /// The only subprocess is our bundled, hash-tested standard-library Python
