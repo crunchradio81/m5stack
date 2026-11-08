@@ -1,7 +1,7 @@
-name: P27 desktop LANFILES and verified SD package checks
+name: P28 Cardputer desktop LAN, SD media safety and audit
 on:
   push:
-    branches: [feature/cardputer-k132-p24-desktop-lan-companion, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery, feature/cardputer-k132-p27-native-sd-installer]
+    branches: [feature/cardputer-k132-p24-desktop-lan-companion, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery, feature/cardputer-k132-p27-native-sd-installer, feature/cardputer-k132-p28-sd-media-audit]
   workflow_dispatch:
 concurrency:
   group: p24-desktop-lan-${{ github.ref }}
@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 -m py_compile Desktop/sdpack27.py Desktop/test_sdpack27.py
           python3 -m unittest discover -s Desktop -p 'test_sdpack27.py' -v
+          python3 -m unittest discover -s Desktop -p 'test_sdmedia28.py' -v
       - name: Package source and user instructions
         if: matrix.os == 'ubuntu-latest'
         run: |

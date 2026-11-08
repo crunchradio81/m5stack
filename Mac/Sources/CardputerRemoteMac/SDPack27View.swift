@@ -38,7 +38,7 @@ struct SDPack27View: View {
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
-                        Text("Choose the FAT32 card volume itself, not /SUITE/APPS. Existing files are protected and never automatically overwritten.")
+                        Text("P28 checks the actual mounted external FAT32 volume. Ordinary Mac folders, internal disks and unsupported filesystems are refused before copying.")
                             .font(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(6)
                 }
@@ -52,11 +52,23 @@ struct SDPack27View: View {
                             Label("\(installer.newFiles) new", systemImage: "plus.square")
                             Label("\(installer.identicalFiles) already identical", systemImage: "checkmark.circle")
                         }.font(.callout)
-                        Text("Validation checks all 30 .BIN/.APP pairs and their SHA-256 hashes, filenames, image bounds and any existing-file conflicts.")
+                        Text("The preview checks all 30 image/manifest pairs, their SHA-256 hashes, and the Mac’s removable FAT32 volume metadata.")
                             .font(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(6)
                 }
-                GroupBox("4 · Explicitly copy new apps") {
+                GroupBox("4 · Read-only audit and recovery") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Button("Audit all 60 files already on SD") { installer.audit() }
+                            .disabled(!installer.canInspect)
+                        Text(installer.auditReport)
+                            .font(.caption)
+                            .textSelection(.enabled)
+                        Text("Missing or changed files are reported for owner review; this never deletes or repairs anything.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(6)
+                }
+                GroupBox("5 · Explicitly copy new apps") {
                     VStack(alignment: .leading, spacing: 11) {
                         Toggle("I selected the root of my own FAT32 Cardputer microSD, and understand that only new files will be created.",
                                isOn: $installer.confirmed)
@@ -68,7 +80,7 @@ struct SDPack27View: View {
                             Button("Stop copy") { installer.cancel() }
                                 .disabled(!installer.busy)
                         }
-                        Text("Every binary is copied before its manifest. After copying, safely eject in Finder. If interrupted, inspect incomplete new files rather than deleting them automatically.")
+                        Text("The card mount is rechecked while copying. Every image is followed by SHA-256 readback and a full 60-file audit. If interrupted, manually inspect partial files.")
                             .font(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(6)
                 }

@@ -16,6 +16,7 @@ final class SDPack27Model: ObservableObject {
     @Published var done = false
     @Published var newFiles = 0
     @Published var identicalFiles = 0
+    @Published var auditReport = "No on-card SHA-256 audit yet."
 
     private var child: Process?
     private var pendingAction = ""
@@ -63,6 +64,7 @@ final class SDPack27Model: ObservableObject {
         done = false
         newFiles = 0
         identicalFiles = 0
+        auditReport = "No on-card SHA-256 audit yet."
     }
 
     func inspect() {
@@ -74,6 +76,14 @@ final class SDPack27Model: ObservableObject {
     func copy() {
         guard canCopy else { return }
         run(mode: "install")
+    }
+
+    func audit() {
+        guard canInspect else { return }
+        // This operation is read-only, and can diagnose partial previous installs.
+        confirmed = false
+        planValid = false
+        run(mode: "audit")
     }
 
     func cancel() {
@@ -133,8 +143,11 @@ final class SDPack27Model: ObservableObject {
             pendingAction = mode
             busy = true
             done = false
-            status = mode == "plan" ? "Validating all 30 manifests and SHA-256 hashes…"
-                                    : "Copying new files. Do not remove the SD card."
+            status = mode == "plan"
+                ? "Validating archive and removable FAT32 volume…"
+                : mode == "audit"
+                    ? "Read-only SHA-256 audit of all 60 on-card app files…"
+                    : "Copying new files. Do not remove the SD card."
         } catch {
             status = "Could not run SD inspector: \(error.localizedDescription)"
             resetPlan()
@@ -146,6 +159,11 @@ final class SDPack27Model: ObservableObject {
         child = nil
         pendingAction = ""
         let lines = report.split(separator: "\n").map(String.init)
+        if mode == "audit" {
+            let audit = lines.first(where: { $0.hasPrefix("AUDIT:") })
+            let defects = lines.filter({ $0.hasPrefix("MISSING:") || $0.hasPrefix("CHANGED:") })
+            auditReport = ([audit].compactMap { $0 } + defects.prefix(8)).joined(separator: " · ")
+        }
         if code != 0 {
             let errorLine = lines.last(where: { $0.hasPrefix("SDPACK27 ERROR:") })
             status = errorLine ?? "SD pack validation/copy failed (status \(code)). No existing files are overwritten; inspect partial new files."
@@ -158,13 +176,21 @@ final class SDPack27Model: ObservableObject {
             newFiles = fields.new
             identicalFiles = fields.identical
         }
-        if mode == "plan" && lines.contains(where: { $0.hasPrefix("READY:") }) {
+        if mode == "plan" && lines.contains(where: { $0.hasPrefix("READY:") }) &&
+            plans.last.flatMap({ parsePlan($0) }) != nil {
             planValid = true
             confirmed = false
             status = "Verified all 30 app pairs. \(newFiles) new files; \(identicalFiles) byte-identical files already present. No changes made."
-        } else if mode == "install", let finished = lines.first(where: { $0.hasPrefix("INSTALLED:") }) {
-            status = "SD installation finished. \(finished). Eject the card safely in Finder."
+        } else if mode == "install", let finished = lines.first(where: { $0.hasPrefix("INSTALLED:") }),
+                  lines.contains("AUDIT:GOOD=60|MISSING=0|CHANGED=0") {
+            auditReport = "All 60 on-card app files match the trusted ZIP."
+            status = "Copied and SHA-256 audited all 60 files. \(finished). Eject safely."
             done = true
+            planValid = false
+            confirmed = false
+        } else if mode == "audit",
+                  lines.contains("AUDIT:GOOD=60|MISSING=0|CHANGED=0") {
+            status = "Read-only audit passed: all 30 images and manifests match the ZIP."
             planValid = false
             confirmed = false
         } else {

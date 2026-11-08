@@ -110,3 +110,10 @@ Contents/Resources/sdpack27.py in the ad-hoc signed Mac app.
 For CLI/macOS/Ubuntu operation and full safety limitations, see
 docs/P27_NATIVE_SD_INSTALLER.md. A manifest SHA-256 is not a signature;
 use only original trusted GitHub build archives.
+
+
+## P28 removable FAT32 guard and independent read-only SD audit
+
+The native SD installer refuses writes to ordinary folders, APFS/internal disks, network shares, read-only or unverified devices. On Mac it checks exact external FAT32 mount metadata using diskutil; on Ubuntu it checks findmnt vfat block-device metadata. It rechecks mount identity between writes and performs a 60-file SHA-256 audit after installation.
+
+The **Audit all 60 files already on SD** control diagnoses missing or modified binaries/manifests without deleting anything. All automated media tests use simulated disk metadata; physical SD/OTA acceptance remains pending. See docs/P28_SD_MEDIA_AUDIT.md.

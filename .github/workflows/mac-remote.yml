@@ -1,7 +1,7 @@
-name: P27 Native macOS Cardputer remote and SD installer
+name: P28 Native Mac Cardputer SD media audit and installation
 on:
   push:
-    branches: [feature/cardputer-k132-p22-mac-remote, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery, feature/cardputer-k132-p27-native-sd-installer]
+    branches: [feature/cardputer-k132-p22-mac-remote, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery, feature/cardputer-k132-p27-native-sd-installer, feature/cardputer-k132-p28-sd-media-audit]
   workflow_dispatch:
 concurrency:
   group: cardputer-mac-remote-${{ github.ref }}
@@ -25,6 +25,7 @@ jobs:
         run: |
           python3 -m py_compile Desktop/sdpack27.py Desktop/test_sdpack27.py
           python3 -m unittest discover -s Desktop -p 'test_sdpack27.py' -v
+          python3 -m unittest discover -s Desktop -p 'test_sdmedia28.py' -v
       - name: Bundle native macOS application (ad-hoc signature, not notarized)
         run: bash Mac/package-app.command
       - name: Verify bundled app and native pairing installer
@@ -50,7 +51,7 @@ jobs:
       - name: Save macOS application ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: CardputerRemoteMac-P27-SD-Installer-app-adhoc-unverified
+          name: CardputerRemoteMac-P28-SD-Audit-app-adhoc-unverified
           path: Mac/dist/CardputerRemoteMac-macOS-unsigned.zip
           retention-days: 14
           if-no-files-found: error
