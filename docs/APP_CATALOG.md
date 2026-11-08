@@ -24,13 +24,13 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 1. **MIDI Studio** — **Built source, hardware pending:** Standard MIDI Files Type 0/1, PPQN,
    multitrack timing, song library, synth, playback, mute/solo, loop, speed
    control. Full GM sample-based accuracy is not currently supported.
-2. MIDI Lyric/Karaoke Viewer — **Planned:** text and synchronized lyric events
+2. MIDI Lyric/Karaoke Viewer — **P9 source: bounded FF 05/FF 01 lyrics synchronized during playback, hardware pending:** text and synchronized lyric events
    in MIDI/KAR where present.
 3. Advanced Instrument Library — **Planned:** storage-efficient instrument
    patches, not PSRAM-only SF2 loading.
-4. MIDI Track Analyzer — **Planned:** notes, tempo map, channel programs,
+4. MIDI Track Analyzer — **P9 source: bounded note/channel/tempo statistics, hardware pending:** notes, tempo map, channel programs,
    event browser and instrument activity.
-5. MIDI Playlist Manager — **Planned:** playlists/favorites, sorting, resume.
+5. MIDI Playlist Manager — **P9 partial: saved favorites only; ordered playlists/resume planned:** playlists/favorites, sorting, resume.
 6. Voice Recorder — **P7 source; hardware pending:** microphone audio to SD; no simultaneous capture/play.
 7. WAV Player — **P7 source; 8/16k mono PCM16 only, hardware pending:** mono streaming.
 8. Music Tracker — **Planned:** patterns and sample-lite instruments.
@@ -217,3 +217,16 @@ Details: docs/P7_FIELD_MEDIA_FILES_IR.md and docs/P7_ACCEPTANCE.md.
   return are **NOT VERIFIED**. See docs/P8_NETWORKING.md / P8_ACCEPTANCE.md.
 - The complete original 94-item suite and advanced music features remain
   unfinished and tracked in GitHub issue #3.
+
+## P9 MIDI expansion — five submenu tools in new MIDITOOLS firmware image
+
+- Track Analyzer, recent-event pitch Piano Roll, first 12 Lyrics/Text
+  events, validated SD Favorites, first 16-event Tempo Map.
+- The resident MIDI player adds .KAR files and a timed lyric view
+  driven by streaming MIDI meta events; no new hardware required.
+- 16 known installable SD image IDs with MIDITOOLS, unchanged factory/OTA
+  partition layout. Firmware source and P9 host tests are subject to CI.
+- Source is **not** original-board certified; details at
+  docs/P9_MIDI_EXPANSION.md and docs/P9_ACCEPTANCE.md.
+- **Still planned:** sample GM patches, advanced tracker, MIDI seeking,
+  chord labels, full playlist editor and rich karaoke graphics.
