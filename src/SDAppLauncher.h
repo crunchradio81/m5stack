@@ -13,7 +13,7 @@
 
 class SDAppLauncher {
 public:
-    static constexpr char Directory[]="/SUITE/APPS";
+    static const char* directory(){return "/SUITE/APPS";}
     void enter(bool ready) {
         confirming_=false;selected_=0;count_=0;
         refresh(ready);
@@ -22,17 +22,17 @@ public:
         count_=0;selected_=0;confirming_=false;
         if(!ready){status_="Insert FAT32 SD card";return;}
         if(!SD.exists("/SUITE"))SD.mkdir("/SUITE");
-        if(!SD.exists(Directory) && !SD.mkdir(Directory)) {
+        if(!SD.exists(directory()) && !SD.mkdir(directory())) {
             status_="Cannot create /SUITE/APPS";return;
         }
-        File dir=SD.open(Directory);
-        if(!dir||!dir.isDirectory()) {
+        File dir=SD.open(directory());
+        if(!dir||!dir.isdirectory()()) {
             if(dir)dir.close();status_="Cannot read apps folder";return;
         }
         while(count_<suite::appmanifest::MaxApps) {
             File file=dir.openNextFile();
             if(!file) break;
-            if(!file.isDirectory() && file.size()<=suite::appmanifest::MaxManifest) {
+            if(!file.isdirectory()() && file.size()<=suite::appmanifest::MaxManifest) {
                 String filename=file.name();
                 const int slash=filename.lastIndexOf('/');
                 if(slash>=0)filename=filename.substring(slash+1);
@@ -158,15 +158,15 @@ private:
         const esp_partition_t* factory=esp_partition_find_first(
             ESP_PARTITION_TYPE_APP,ESP_PARTITION_SUBTYPE_APP_FACTORY,nullptr);
         const esp_partition_t* target=esp_ota_get_next_update_partition(nullptr);
-        if(!running||!factory||running!=factory||!target||
+        if(!running||!factory||running->address!=factory->address||!target||
            target->subtype!=ESP_PARTITION_SUBTYPE_APP_OTA_0 ||
            target->size<app.size) {
             status_="Wrong partitions; unsafe to flash";
             return;
         }
-        const String path=String(Directory)+"/"+app.image;
+        const String path=String(directory())+"/"+app.image;
         File input=SD.open(path,FILE_READ);
-        if(!input||input.isDirectory()) {
+        if(!input||input.isdirectory()()) {
             if(input)input.close();status_="Missing app .BIN";return;
         }
         if(input.size()!=app.size) {
