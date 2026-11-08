@@ -33,13 +33,14 @@ inline bool address(const char*ip){
  for(int i=0;i<4;++i){
   if(!*cursor)return false;
   unsigned count=0,numeric=0;
+  const char*octetStart=cursor;
   while(*cursor>='0'&&*cursor<='9'){
    if(++count>3)return false;
    numeric=numeric*10+static_cast<unsigned>(*cursor-'0');
    if(numeric>255)return false;
    ++cursor;
   }
-  if(!count||(count>1&&cursor[-count]=='0'))return false;
+  if(!count||(count>1&&*octetStart=='0'))return false;
   octets[i]=numeric;
   if(i==3){if(*cursor)return false;}
   else if(*cursor++!='.')return false;
