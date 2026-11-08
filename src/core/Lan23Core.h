@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <limits.h>
+#include <stdio.h>
 #include "SafeFiles17Core.h"
 namespace suite {namespace lan23 {
 constexpr uint16_t Port=38948;
