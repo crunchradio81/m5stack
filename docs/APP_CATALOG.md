@@ -51,7 +51,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 20. Wi-Fi Appearance/Disappearance Monitor — **P7 source; scan-to-scan estimate, hardware pending**
 21. BLE Advertisement Logger — **P7 source, passive SD CSV with boot-relative time**
 22. BLE Signal Analyzer — **P7 extends passive RSSI viewer; history/graphs still planned**
-23. BLE GATT Explorer — **Planned**, user-consented device connections only
+23. BLE GATT Explorer — **P23 source, unverified hardware:** bounded 3-second opt-in scan, explicit selected-device GATT connect and read-only UUID/properties metadata; no characteristic reads or writes
 24. Ping / latency diagnostics — **P8 source: single ICMP echo, hardware pending**
 25. DNS Lookup — **P8 source: bounded IPv4 lookup, hardware pending**
 26. LAN Service Discovery (mDNS/SSDP) — **P21 source: existing mDNS and opt-in bounded SSDP multicast device viewer in FIELD2; hardware pending**
@@ -65,7 +65,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 34. Wikipedia Text Reader — **P15 partial: first bounded ASCII extract over validated HTTPS, hardware pending**
 35. Lightweight Web Text Browser — **P15 partial: static HTTPS HTML tag-stripped prefix, no scripting/navigation**
 36. HTTP / REST Client — **P15 extends with CA-verified HTTPS GET; POST/PUT/auth planned**
-37. LAN File Transfer Server — **Planned**
+37. LAN File Transfer Server — **P23 source, unverified hardware:** owner-started one-shot private LAN sender/receiver, 256KiB file cap, HMAC challenge, SHA verification, no overwrite
 38. Smart-home MQTT Controller — **Planned**
 
 ## P4 productivity (14)
@@ -337,3 +337,6 @@ Physical QA: docs/P17_ACCEPTANCE.md.
   macOS Accessibility permission, and a trusted local 2.4GHz network.
 - Plain TCP means **no transport secrecy**: never send passwords or secrets; use
   a trusted LAN. Mac OS requires real-device permission and keyboard tests.
+
+## P23 — New two-app SD package (source and CI, hardware pending)
+LANFILES adds authenticated but unencrypted trusted-LAN SD-to-SD file transfers with protected temp files; GATTVIEW adds opt-in BLE GATT UUID/metadata exploration. No new hardware or partition layout is required. See docs/P23_LANFILE_GATT.md.
