@@ -6,6 +6,7 @@
 #include <M5Cardputer.h>
 #include <SPI.h>
 #include <SD.h>
+#include <strings.h>
 #include "core/Dev14Core.h"
 #include "core/Pocket11Core.h"
 class Dev14Collection {
@@ -252,18 +253,18 @@ private:
  bool saveFile(const char*path,const uint8_t*bytes,size_t n){
    if(!sd_||readonly_||n>suite::dev14::Program::MaxText)return false;
    const String tmp=String(path)+".NEW",bak=String(path)+".BAK";
-   if(SD.exists(tmp)&&!SD.remove(tmp))return false;
-   File f=SD.open(tmp,FILE_WRITE);
+   if(SD.exists(tmp.c_str())&&!SD.remove(tmp.c_str()))return false;
+   File f=SD.open(tmp.c_str(),FILE_WRITE);
    if(!f)return false;
    const bool ok=f.write(bytes,n)==n;f.flush();f.close();
    if(!ok)return false;
    const bool had=SD.exists(path);
    if(had){
-     if(SD.exists(bak)&&!SD.remove(bak))return false;
-     if(!SD.rename(path,bak))return false;
+     if(SD.exists(bak.c_str())&&!SD.remove(bak.c_str()))return false;
+     if(!SD.rename(path,bak.c_str()))return false;
    }
-   if(!SD.rename(tmp,path)){
-     if(had)SD.rename(bak,path);
+   if(!SD.rename(tmp.c_str(),path)){
+     if(had)SD.rename(bak.c_str(),path);
      return false;
    }
    return true;
