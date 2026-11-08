@@ -19,10 +19,12 @@ jobs:
         run: swift test --package-path Mac
       - name: Build native SwiftUI app
         run: swift build --package-path Mac -c release
-      - name: Save unsigned macOS executable
+      - name: Bundle native macOS application (ad-hoc signature, not notarized)
+        run: bash Mac/package-app.command
+      - name: Save macOS application ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: CardputerRemoteMac-unsigned-unverified
-          path: Mac/.build/release/CardputerRemoteMac
+          name: CardputerRemoteMac-app-adhoc-unverified
+          path: Mac/dist/CardputerRemoteMac-macOS-unsigned.zip
           retention-days: 14
           if-no-files-found: error
