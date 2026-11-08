@@ -4,12 +4,26 @@
     defined(SUITE_APP_CHANNELS) || defined(SUITE_APP_BLE) || \
     defined(SUITE_APP_ARCADE) || defined(SUITE_APP_OFFICE) || \
     defined(SUITE_APP_INSPECT) || defined(SUITE_APP_MUSICLAB) || \
-    defined(SUITE_APP_DEVTOOLS) || defined(SUITE_APP_SYSTEM)
+    defined(SUITE_APP_DEVTOOLS) || defined(SUITE_APP_SYSTEM) || \
+    defined(SUITE_APP_IRTOOLS) || defined(SUITE_APP_WIRELESS) || \
+    defined(SUITE_APP_AUDIOLAB) || defined(SUITE_APP_FILETOOLS)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_DEVTOOLS)
+#if defined(SUITE_APP_IRTOOLS)
+#include "IRCollection.h"
+using ActiveApp=IRCollection;
+#elif defined(SUITE_APP_WIRELESS)
+#include "WirelessCollection.h"
+using ActiveApp=WirelessCollection;
+#elif defined(SUITE_APP_AUDIOLAB)
+#include "AudioCollection.h"
+using ActiveApp=AudioCollection;
+#elif defined(SUITE_APP_FILETOOLS)
+#include "FileCollection.h"
+using ActiveApp=FileCollection;
+#elif defined(SUITE_APP_DEVTOOLS)
 #include "DevCollection.h"
 using ActiveApp=DevCollection;
 #elif defined(SUITE_APP_SYSTEM)

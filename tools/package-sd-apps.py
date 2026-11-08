@@ -25,6 +25,10 @@ APPS = (
     ("sd_musiclab", "MUSICLAB", "Music Practice Collection"),
     ("sd_devtools", "DEVTOOLS", "Developer Tools"),
     ("sd_system", "SYSTEM", "System Toolbox"),
+    ("sd_irtools", "IRTOOLS", "Infrared Remote Tools"),
+    ("sd_wireless", "WIRELESS", "Wireless Field Lab"),
+    ("sd_audiolab", "AUDIOLAB", "Audio Recorder and Lab"),
+    ("sd_filetools", "FILETOOLS", "Safe SD File Tools"),
 )
 MAX_APP_BYTES = 0x300000
 
