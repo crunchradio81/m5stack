@@ -388,17 +388,20 @@ def main(argv=None) -> int:
     p.add_argument("--confirm-copy", action="store_true", help="Explicitly permit create-only SD file copying")
     args = p.parse_args(argv)
     try:
-        validated, new, same = build_plan(args.archive, args.target)
-        print(f"PLAN:APPS={len(validated)}|NEW={len(new)}|IDENTICAL={len(same)}", flush=True)
-        if args.mode == "plan":
-            print("READY: validated package and selected target; no changes made", flush=True)
-        elif args.mode == "audit":
+        if args.mode == "audit":
+            require_card_media(args.target)
             good, missing, changed, details = audit_card(args.archive, args.target)
             print(f"AUDIT:GOOD={good}|MISSING={missing}|CHANGED={changed}", flush=True)
             for line in details[:20]:
                 print(line, flush=True)
             if missing or changed:
                 raise PackError("SD verification incomplete; manually review missing/changed files")
+            return 0
+        validated, new, same = build_plan(args.archive, args.target)
+        print(f"PLAN:APPS={len(validated)}|NEW={len(new)}|IDENTICAL={len(same)}", flush=True)
+        if args.mode == "plan":
+            require_card_media(args.target)
+            print("READY: validated package and verified mounted FAT32 card; no changes made", flush=True)
         elif not args.confirm_copy:
             raise PackError("Copy requires --confirm-copy; no SD files were written")
         else:
