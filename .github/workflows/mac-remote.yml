@@ -1,0 +1,30 @@
+name: P22 Native macOS Cardputer remote
+on:
+  push:
+    branches: [feature/cardputer-k132-p22-mac-remote]
+  workflow_dispatch:
+concurrency:
+  group: cardputer-mac-remote-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  macos-companion:
+    name: Swift native macOS companion and protocol tests
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect Swift version
+        run: swift --version
+      - name: Run authenticated protocol tests
+        run: swift test --package-path Mac
+      - name: Build native SwiftUI app
+        run: swift build --package-path Mac -c release
+      - name: Bundle native macOS application (ad-hoc signature, not notarized)
+        run: bash Mac/package-app.command
+      - name: Save macOS application ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: CardputerRemoteMac-app-adhoc-unverified
+          path: Mac/dist/CardputerRemoteMac-macOS-unsigned.zip
+          retention-days: 14
+          if-no-files-found: error
