@@ -36,6 +36,7 @@ public:
   if(k.fn && key(k,'1')){mode_=0;dirty_=true;return;}
   if(k.fn && key(k,'2')){mode_=1;dirty_=true;return;}
   if(k.fn && key(k,'3')){mode_=2;dirty_=true;return;}
+  if(k.fn && key(k,'4')){mode_=3;dirty_=true;return;}
   if(mode_==0){
     if(key(k,'r'))load();
     if(key(k,'c'))connect();
@@ -61,6 +62,21 @@ public:
     if(key(k,'r'))send("CLICK","R");
     if(key(k,'u'))send("SCROLL","2");
     if(key(k,'n'))send("SCROLL","-2");
+  }else if(mode_==3){
+    // Stock K132 keyboard generates printable ASCII; Mac macro text can be
+    // full Unicode, delivered using CGEventKeyboardSetUnicodeString.
+    if(!k.fn&&!k.ctrl&&!k.alt){
+      char hex[65]={};size_t used=0;
+      static const char alpha[]="0123456789abcdef";
+      for(char c:k.word){
+        if(!suite::mac22::utf8Ascii(c)||used>=32)continue;
+        const uint8_t b=static_cast<uint8_t>(c);
+        hex[used*2]=alpha[b>>4];
+        hex[used*2+1]=alpha[b&15];
+        ++used;
+      }
+      if(used&&send("TEXT",String(hex)))status_=String("Sent ")+used+" text bytes";
+    }
   }
   dirty_=true;
  }
@@ -77,7 +93,8 @@ public:
   d.setTextColor(p.text,p.bg);d.setCursor(5,49);
   d.print(String("Mac: ")+(configured_?pair_.address:"Need REMOTE.CFG"));
   d.setCursor(5,66);
-  d.print(String("Mode: ")+(mode_==0?"Setup":mode_==1?"12 Macro Keys":"Mouse / Scroll"));
+  d.print(String("Mode: ")+(mode_==0?"Setup":mode_==1?"12 Macro Keys":
+          mode_==2?"Mouse / Scroll":"Type to Mac"));
   d.setTextColor(p.muted,p.bg);d.setCursor(5,89);
   d.print(status_.substring(0,38));
   d.setCursor(5,103);
@@ -85,7 +102,8 @@ public:
   d.fillRect(0,116,240,19,p.panel);
   d.setTextColor(p.text,p.panel);d.setCursor(4,121);
   d.print(mode_==0?"R reload C connect D disconnect":
-         mode_==1?"1..0 -= macros  Fn+3 mouse":"IJKL move space click R right");
+         mode_==1?"1..0 -= macros  Fn+3 mouse":
+         mode_==2?"IJKL move space click R right":"Type ASCII | Fn+1 setup");
  }
 private:
  static bool key(const Keyboard_Class::KeysState&k,char expected){
