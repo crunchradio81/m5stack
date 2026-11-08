@@ -12,6 +12,10 @@ if [[ ! -x "$SRC" ]]; then
 fi
 mkdir -p "$DEST/Contents/MacOS" "$DEST/Contents/Resources"
 cp "$SRC" "$DEST/Contents/MacOS/CardputerRemoteMac"
+# Keep the P24 authenticated Python helper alongside the native UI.
+# The UI finds this read-only resource via Bundle.main; no shell downloads.
+cp "$ROOT/../Desktop/lanfile24.py" "$DEST/Contents/Resources/lanfile24.py"
+test -s "$DEST/Contents/Resources/lanfile24.py"
 cat > "$DEST/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
@@ -23,13 +27,13 @@ cat > "$DEST/Contents/Info.plist" <<'PLIST'
   <key>CFBundleName</key><string>Cardputer Remote Mac</string>
   <key>CFBundleDisplayName</key><string>Cardputer Remote</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>0.22.0</string>
-  <key>CFBundleVersion</key><string>22</string>
+  <key>CFBundleShortVersionString</key><string>0.25.0</string>
+  <key>CFBundleVersion</key><string>25</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>NSHumanReadableCopyright</key>
   <string>Open-source software; personal-use remote control.</string>
   <key>NSLocalNetworkUsageDescription</key>
-  <string>Accept authenticated Cardputer macro and pointer commands on your own LAN.</string>
+  <string>Accept authenticated Cardputer macro and pointer commands and explicitly initiated file transfers on your own LAN.</string>
   <key>NSHighResolutionCapable</key><true/>
 </dict>
 </plist>
