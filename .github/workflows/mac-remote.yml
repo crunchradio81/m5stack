@@ -1,7 +1,7 @@
-name: P26 Native macOS Cardputer remote and safe installer
+name: P27 Native macOS Cardputer remote and SD installer
 on:
   push:
-    branches: [feature/cardputer-k132-p22-mac-remote, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery]
+    branches: [feature/cardputer-k132-p22-mac-remote, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery, feature/cardputer-k132-p27-native-sd-installer]
   workflow_dispatch:
 concurrency:
   group: cardputer-mac-remote-${{ github.ref }}
@@ -21,6 +21,10 @@ jobs:
         run: swift build --package-path Mac -c release
       - name: Verify bundled Python transfer helper syntax
         run: python3 -m py_compile Desktop/lanfile24.py
+      - name: Run SD package validator host regressions on macOS
+        run: |
+          python3 -m py_compile Desktop/sdpack27.py Desktop/test_sdpack27.py
+          python3 -m unittest discover -s Desktop -p 'test_sdpack27.py' -v
       - name: Bundle native macOS application (ad-hoc signature, not notarized)
         run: bash Mac/package-app.command
       - name: Verify bundled app and native pairing installer
@@ -29,6 +33,7 @@ jobs:
           test -s Mac/dist/CardputerRemoteMac.app/Contents/Resources/lanfile24.py
           test -x Mac/dist/P26-Install-Bundle/Install-CardputerRemoteMac.command
           test -s Mac/dist/P26-Install-Bundle/CardputerRemoteMac.app/Contents/Resources/lanfile24.py
+          test -s Mac/dist/P26-Install-Bundle/CardputerRemoteMac.app/Contents/Resources/sdpack27.py
           codesign --verify --deep --strict Mac/dist/P26-Install-Bundle/CardputerRemoteMac.app
       - name: Verify ZIP extraction and safe first install without user changes
         run: |
@@ -45,7 +50,7 @@ jobs:
       - name: Save macOS application ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: CardputerRemoteMac-P26-safe-installer-adhoc-unverified
+          name: CardputerRemoteMac-P27-SD-Installer-app-adhoc-unverified
           path: Mac/dist/CardputerRemoteMac-macOS-unsigned.zip
           retention-days: 14
           if-no-files-found: error
