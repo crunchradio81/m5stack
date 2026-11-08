@@ -19,12 +19,16 @@
     defined(SUITE_APP_NOTEBOOK) || \
     defined(SUITE_APP_SAFEFILES) || \
     defined(SUITE_APP_GAMEBOY) || \
-    defined(SUITE_APP_FIELD2)
+    defined(SUITE_APP_FIELD2) || \
+    defined(SUITE_APP_MACREMOTE)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_FIELD2)
+#if defined(SUITE_APP_MACREMOTE)
+#include "MacRemote22Collection.h"
+using ActiveApp=MacRemote22Collection;
+#elif defined(SUITE_APP_FIELD2)
 #include "Field20Collection.h"
 using ActiveApp=Field20Collection;
 #elif defined(SUITE_APP_GAMEBOY)
