@@ -8,6 +8,7 @@
 #include "core/Calculator.h"
 #include "core/Paths.h"
 #include "core/TextDocument.h"
+#include "WifiLogger.h"
 
 namespace {
 constexpr uint16_t BG=0x0841, PANEL=0x10C4, SELECTED=0x2673;
@@ -18,9 +19,9 @@ constexpr char NOTE_PATH[]="/SUITE/NOTES.TXT";
 constexpr char CONFIG_PATH[]="/SUITE/CONFIG.TXT";
 constexpr uint8_t BRIGHTNESS[]={64,128,192,255};
 
-enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, System, Settings };
-const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","System Info","Settings"};
-constexpr int APP_COUNT=6;
+enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, WifiLog, WifiLogView, WifiLogDetail, WifiLogErase, System, Settings };
+const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","Wi-Fi Logger","System Info","Settings"};
+constexpr int APP_COUNT=7;
 Screen screen=Screen::Home;
 int appSelected=0, settingsSelected=0;
 bool sdReady=false, noteWritable=true, dirty=true, scanActive=false, autosave=true;
@@ -32,7 +33,11 @@ int filesSelected=0, filesCount=0;
 String previewPath;
 String ssid[7];
 int rssi[7]={}, wifiCount=0;
-uint32_t lastRefresh=0;
+uint32_t lastRefresh=0, lastWifiLogDraw=0, wifiLogViewSkip=0;
+int wifiLogSelected=0;
+bool hasViewedRecord=false;
+suite::wifi_csv::Record viewedRecord;
+WifiLogger wifiLogger;
 
 bool has(const Keyboard_Class::KeysState &k,char c) {
     for(char value:k.word) if(value==c) return true;
@@ -147,8 +152,8 @@ void drawHome() {
     frame("CARDPUTER SUITE",sdReady?"Enter open | SD ready":"Enter open | No SD card");
     auto &d=M5Cardputer.Display;
     for(int i=0;i<APP_COUNT;++i) {
-        const int y=27+i*14;
-        if(appSelected==i) d.fillRoundRect(3,y-1,232,13,3,SELECTED);
+        const int y=25+i*12;
+        if(appSelected==i) d.fillRoundRect(3,y-1,232,12,3,SELECTED);
         d.setTextColor(WHITE,appSelected==i?SELECTED:BG);
         d.setCursor(9,y+1);d.print(i+1);d.print("  ");d.print(APPS[i]);
     }
@@ -287,6 +292,80 @@ void drawWifi() {
         writeText(5,28+i*12,(ssid[i].substring(0,26)+
              " "+String(rssi[i])+"dBm").substring(0,38));
 }
+
+String wifiName(const suite::wifi_csv::Record &r) {
+    return r.ssid[0] ? String(r.ssid) : String("(hidden)");
+}
+String wifiSignal(int rssi) {
+    // Indicative signal bars; not a calibrated distance measurement.
+    const int bars=rssi>=-50?4:rssi>=-65?3:rssi>=-75?2:rssi>=-85?1:0;
+    String label;
+    for(int i=0;i<4;++i) label+=i<bars?'|':'.';
+    return label;
+}
+void drawWifiLog() {
+    frame("WI-FI LOGGER",wifiLogger.running ?
+          "P pause  V saved  E erase  Enter info" :
+          "S start  V saved  E erase  Enter info");
+    if(!sdReady) {
+        writeText(5,31,"Insert FAT32 microSD card",MUTED);
+        writeText(5,48,"Recording disabled without SD");
+        return;
+    }
+    writeText(5,25,(wifiLogger.running?"RUN ":"PAUSE ")+wifiLogger.status.substring(0,31),
+              wifiLogger.running?GREENISH:MUTED);
+    writeText(5,36,String("Scans ")+wifiLogger.scans+"  Hits "+wifiLogger.observations+
+                    "  Now "+wifiLogger.lastSeen,CYAN);
+    if(!wifiLogger.recentCount)
+        writeText(5,55,"Press S to begin logging",MUTED);
+    for(int i=0;i<wifiLogger.recentCount;++i) {
+        const int y=48+i*11;
+        if(i==wifiLogSelected)
+            M5Cardputer.Display.fillRect(3,y-1,233,11,SELECTED);
+        const auto &r=wifiLogger.recent[i];
+        const String row=wifiName(r).substring(0,22)+" "+String(r.rssi)+
+                         " "+wifiSignal(r.rssi);
+        auto &d=M5Cardputer.Display;
+        d.setTextColor(WHITE,i==wifiLogSelected?SELECTED:BG);
+        d.setCursor(5,y);d.print(row.substring(0,38));
+    }
+}
+void drawWifiLogRecord(const char *title,const suite::wifi_csv::Record &r,
+                       const String &hint) {
+    frame(title,hint);
+    writeText(5,27,"SSID: "+wifiName(r).substring(0,30));
+    writeText(5,39,String("BSSID: ")+r.bssid);
+    writeText(5,51,String("RSSI: ")+r.rssi+" dBm  "+wifiSignal(r.rssi));
+    writeText(5,63,String("Channel: ")+r.channel+" (2.4GHz)");
+    writeText(5,75,String("Security: ")+r.security);
+    writeText(5,87,String("Boot time: ")+r.uptimeMs+" ms");
+    writeText(5,99,String("Session: ")+r.session+"  Scan "+r.scan);
+}
+void drawWifiLogView() {
+    if(!hasViewedRecord) {
+        frame("SAVED WI-FI LOG","B back  |  Start on logger");
+        writeText(5,37,"No complete records found",MUTED);
+        return;
+    }
+    drawWifiLogRecord("SAVED WI-FI LOG",viewedRecord,
+                      "Up older / Down newer / B back");
+    writeText(5,109,String("Previous records: ")+wifiLogViewSkip,MUTED);
+}
+void drawWifiLogDetail() {
+    if(wifiLogger.recentCount==0) {
+        frame("WI-FI DETAILS","B back");
+        return;
+    }
+    drawWifiLogRecord("WI-FI DETAILS",wifiLogger.recent[wifiLogSelected],"B back");
+}
+void drawWifiLogErase() {
+    frame("ERASE WI-FI LOG","Y delete  N cancel");
+    writeText(6,37,"Delete WIFI.CSV from SD?",WHITE);
+    writeText(6,55,"All recorded scans will be lost.",MUTED);
+    writeText(6,77,"Y = ERASE",CYAN);
+    writeText(6,90,"N = CANCEL",GREENISH);
+}
+
 void drawSystem() {
     frame("SYSTEM INFO","Original K132 / no PSRAM");
     writeText(6,28,"Board: Cardputer / StampS3");
@@ -318,6 +397,10 @@ void render() {
         case Screen::Files:drawFiles();break;
         case Screen::Preview:drawPreview();break;
         case Screen::Wifi:drawWifi();break;
+        case Screen::WifiLog:drawWifiLog();break;
+        case Screen::WifiLogView:drawWifiLogView();break;
+        case Screen::WifiLogDetail:drawWifiLogDetail();break;
+        case Screen::WifiLogErase:drawWifiLogErase();break;
         case Screen::System:drawSystem();break;
         case Screen::Settings:drawSettings();break;
     }
@@ -330,14 +413,18 @@ void openApp(int index) {
         case 1:screen=Screen::Calculator;break;
         case 2:screen=Screen::Files;refreshFiles();break;
         case 3:screen=Screen::Wifi;startScan();break;
-        case 4:screen=Screen::System;break;
-        case 5:screen=Screen::Settings;break;
+        case 4:screen=Screen::WifiLog;break;
+        case 5:screen=Screen::System;break;
+        case 6:screen=Screen::Settings;break;
     }
     dirty=true;
 }
 void returnHome() {
     if(screen==Screen::Notes && note.changed() && autosave) saveNote();
     if(screen==Screen::Wifi) stopScan();
+    if(screen==Screen::WifiLog || screen==Screen::WifiLogView ||
+       screen==Screen::WifiLogDetail || screen==Screen::WifiLogErase)
+        wifiLogger.pause();
     screen=Screen::Home;dirty=true;
 }
 void fileEnter() {
@@ -426,6 +513,47 @@ void input(const Keyboard_Class::KeysState &k) {
         case Screen::Wifi:
             if(hasLetter(k,'r')) {stopScan();startScan();}
             break;
+        case Screen::WifiLog:
+            if(hasLetter(k,'s')) {wifiLogger.start(sdReady);break;}
+            if(hasLetter(k,'p')) {wifiLogger.pause();break;}
+            if(hasLetter(k,'e')) {
+                wifiLogger.pause();screen=Screen::WifiLogErase;break;
+            }
+            if(hasLetter(k,'v')) {
+                wifiLogger.pause();wifiLogViewSkip=0;
+                hasViewedRecord=wifiLogger.readFromEnd(0,viewedRecord,sdReady);
+                screen=Screen::WifiLogView;break;
+            }
+            if(k.up && wifiLogSelected>0) --wifiLogSelected;
+            if(k.down && wifiLogSelected+1<wifiLogger.recentCount) ++wifiLogSelected;
+            if(k.enter && wifiLogger.recentCount) {
+                wifiLogger.pause();screen=Screen::WifiLogDetail;
+            }
+            break;
+        case Screen::WifiLogView:
+            if(k.backspace || hasLetter(k,'b')) {screen=Screen::WifiLog;break;}
+            if(k.up && hasViewedRecord) {
+                suite::wifi_csv::Record older;
+                if(wifiLogger.readFromEnd(wifiLogViewSkip+1,older,sdReady)) {
+                    ++wifiLogViewSkip;viewedRecord=older;
+                }
+            }
+            if(k.down && wifiLogViewSkip>0) {
+                suite::wifi_csv::Record newer;
+                if(wifiLogger.readFromEnd(wifiLogViewSkip-1,newer,sdReady)) {
+                    --wifiLogViewSkip;viewedRecord=newer;
+                }
+            }
+            break;
+        case Screen::WifiLogDetail:
+            if(k.backspace || hasLetter(k,'b')) screen=Screen::WifiLog;
+            break;
+        case Screen::WifiLogErase:
+            if(hasLetter(k,'y')) {
+                wifiLogger.erase(sdReady);
+                wifiLogSelected=0;screen=Screen::WifiLog;
+            } else if(hasLetter(k,'n') || k.backspace) screen=Screen::WifiLog;
+            break;
         case Screen::System:break;
         case Screen::Settings:
             if(k.up) settingsSelected=(settingsSelected+1)%2;
@@ -459,6 +587,12 @@ void loop() {
         input(keys);
     }
     if(screen==Screen::Wifi) pollScan();
+    if(wifiLogger.running) wifiLogger.tick();
+    if(screen==Screen::WifiLog && millis()-lastWifiLogDraw>=750) {
+        lastWifiLogDraw=millis();dirty=true;
+        if(wifiLogSelected>=wifiLogger.recentCount)
+            wifiLogSelected=wifiLogger.recentCount?wifiLogger.recentCount-1:0;
+    }
     if(screen==Screen::System && millis()-lastRefresh>=1500) {
         lastRefresh=millis();dirty=true;
     }
