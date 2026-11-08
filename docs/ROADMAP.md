@@ -88,3 +88,20 @@ Do not claim releases pass until the board-specific evidence exists.
 - Expanded host regressions, firmware compilation and SD image packing.
 - **Gate pending:** physical original K132 SD boot/return, CHIP-8 keyboard,
   battery readout, timing/heap and OTA recovery.
+
+## P7 — IR, wireless field logging, audio and SD file management
+
+- IRTOOLS: user-supplied NEC transmit profiles, media/shutter codes,
+  manually triggered bounded IR macro, **no receiver/learning**.
+- WIRELESS: 2.4GHz passive AP surveys, label and SD logs, appearance
+  comparison, BLE broadcast logs/strength; no GPS or pairing.
+- AUDIOLAB: 16kHz mono PCM WAV recorder with .NEW finalization,
+  bounded PCM WAV playback, amplitude, rough tuner and coarse spectrum.
+- FILETOOLS: guarded file operations under /SUITE/USER and /SUITE/BACKUP
+  only, no overwrite, confirmed destructive actions.
+- Four new independently built firmware images, making 14 SD packages.
+- **Gate pending:** physical K132 IR carrier timing, passive radio
+  survey, microphone/speaker exclusivity, SD recoverability, and
+  factory boot/OTA recovery.
+- Full 94-item catalog remains open, including deeper media formats,
+  network clients, text tools and application quality passes.
