@@ -24,8 +24,8 @@ int main(){
  char sign[220]={};assert(signatureBody(h,challengeText.c_str(),sign,sizeof(sign)));
  assert(std::string(sign).find("|PHOTO.TXT|1024|")==9);
  assert(!signatureBody(h,"bad",sign,sizeof(sign)));
- assert(!parseHeader(("K132FILE1|../A.TXT|1024|"+digest+"|"+sig+"\n").c_str(),
-    header.size()+3,h));
+ const std::string traversal="K132FILE1|../A.TXT|1024|"+digest+"|"+sig+"\n";
+ assert(!parseHeader(traversal.c_str(),traversal.size(),h));
  for(const std::string& value:{"0","0001","262145","4294967296","-1"}){
   const std::string bad="K132FILE1|VALID.BIN|"+value+"|"+digest+"|"+sig+"\n";
   assert(!parseHeader(bad.c_str(),bad.size(),h));
