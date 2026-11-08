@@ -100,7 +100,7 @@ class P27Tests(unittest.TestCase):
         self.assertEqual(list(self.card.iterdir()), [])
 
     def test_refuse_manifest_wrong_name_and_unexpected_zip_paths(self):
-        for invalid in ["K132APP2", "NAME=bad\nFAKE=x", "SHA256="]:
+        for invalid in ["K132APP2", "NAME=bad\nFAKE=x", "SHA256=zz"]:
             def modify(app, firmware, manifest):
                 if app == "PIANO":
                     return firmware, manifest.replace(
