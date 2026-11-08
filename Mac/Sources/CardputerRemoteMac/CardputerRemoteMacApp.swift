@@ -65,7 +65,7 @@ final class RemoteModel: ObservableObject {
     }
 
     func requestAccessibility() {
-        let opt = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        let opt = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(opt)
     }
     var hasAccessibility: Bool { AXIsProcessTrusted() }
