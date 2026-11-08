@@ -9,7 +9,11 @@
 namespace suite { namespace appmanifest {
 constexpr size_t MaxManifest=512;
 constexpr uint32_t MaxBinary=0x300000u;
-constexpr uint8_t MaxApps=32;
+// Fixed RAM budget, not 64 firmware partitions: only one SD image occupies OTA_0.
+constexpr uint8_t MaxApps=64;
+// Read at most this many FAT32 directory entries on each explicit refresh.
+constexpr uint16_t MaxDirectoryEntries=256;
+static_assert(MaxApps<256, "Launcher index must fit uint8_t");
 struct App {
     char name[30]={};
     char id[12]={};
@@ -27,6 +31,21 @@ inline bool authorizedId(const char* id) {
            equals(id,"IRTOOLS")||equals(id,"WIRELESS")||
            equals(id,"AUDIOLAB")||equals(id,"FILETOOLS")||
            equals(id,"NETTOOLS")||equals(id,"MIDITOOLS")||equals(id,"ARCADE2")||equals(id,"POCKET11")||equals(id,"ARCADE3")||equals(id,"MUSIC2")||equals(id,"DEV2")||equals(id,"WEBSECURE")||equals(id,"THEMES")||equals(id,"NOTEBOOK")||equals(id,"SAFEFILES")||equals(id,"GAMEBOY")||equals(id,"FIELD2")||equals(id,"C64")||equals(id,"MACREMOTE")||equals(id,"LANFILES")||equals(id,"GATTVIEW");
+}
+// The .APP basename must match the allowlisted ID, not merely its contents.
+// Reject duplicate declarations before they can produce an ambiguous menu.
+inline bool manifestFilenameMatches(const char* filename,const App& app) {
+    if(!filename) return false;
+    const size_t idLen=strlen(app.id);
+    return strlen(filename)==idLen+4 &&
+           strncmp(filename,app.id,idLen)==0 &&
+           strcmp(filename+idLen,".APP")==0;
+}
+inline bool distinctAppId(const App* apps,size_t count,const App& candidate) {
+    if(!apps || count>MaxApps)return false;
+    for(size_t i=0;i<count;++i)
+        if(equals(apps[i].id,candidate.id))return false;
+    return true;
 }
 inline bool safeFilename(const char *s) {
     const size_t n=strlen(s);

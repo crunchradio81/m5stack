@@ -50,11 +50,17 @@ MAX_APP_BYTES = 0x300000
 
 
 def package(root: Path, destination: Path, artifact_layout: bool = False):
-    # The on-device parser has char name[30], char id[12], MaxApps=32.
-    # Check all entries before attempting any firmware package writes.
-    if len(APPS) > 32:
-        raise ValueError("More apps than the original K132 launcher supports")
+    # Keep packaging limits equal to the installed factory launcher; 64 is
+    # the catalog capacity, not the number of executable flash partitions.
+    # Validate every definition BEFORE opening binaries or creating the ZIP.
+    if len(APPS) > 64:
+        raise ValueError("More than 64 apps: launcher capacity exceeded")
+    seen_envs, seen_ids = set(), set()
     for environment, app_id, label in APPS:
+        if environment in seen_envs or app_id in seen_ids:
+            raise ValueError(f"{app_id}: duplicate environment or app ID")
+        seen_envs.add(environment)
+        seen_ids.add(app_id)
         if not 1 <= len(label) < 30 or not label.isascii() or not label.isprintable():
             raise ValueError(f"{app_id}: NAME exceeds 29 ASCII characters")
         if not 1 <= len(app_id) < 12 or not all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in app_id):

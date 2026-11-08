@@ -42,6 +42,20 @@ int main() {
                         "DEVTOOLS","SYSTEM",
                         "IRTOOLS","WIRELESS","AUDIOLAB","FILETOOLS","NETTOOLS","MIDITOOLS","ARCADE2","POCKET11","ARCADE3","MUSIC2","DEV2","WEBSECURE","THEMES","NOTEBOOK","SAFEFILES","GAMEBOY","FIELD2","C64","MACREMOTE","LANFILES","GATTVIEW"})
         assert(authorizedId(id));
+    assert(MaxApps==64 && MaxDirectoryEntries==256);
+    assert(manifestFilenameMatches("METRONOME.APP",app));
+    assert(!manifestFilenameMatches("PIANO.APP",app));
+    assert(!manifestFilenameMatches("METRONOME.app",app));
+    assert(!manifestFilenameMatches("../METRONOME.APP",app));
+    assert(!manifestFilenameMatches(nullptr,app));
+    App catalog[MaxApps]={};
+    catalog[0]=app;
+    assert(!distinctAppId(catalog,1,app));
+    App other=app;
+    strcpy(other.id,"PIANO");
+    assert(distinctAppId(catalog,1,other));
+    assert(!distinctAppId(catalog,MaxApps+1,other));
+    assert(!distinctAppId(nullptr,0,other));
     assert(!authorizedId("CAMERA"));
     assert(safeFilename("BLE.BIN") && !safeFilename("BLE.bin"));
     puts("SD App Manifests: PASS (bounded fields, file names, exact app IDs)");

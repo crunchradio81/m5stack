@@ -23,6 +23,7 @@ public:
     }
     void refresh(bool ready) {
         count_=visibleCount_=selected_=0;confirming_=searching_=false;
+        status_="";
         if(!ready){status_="Insert FAT32 SD card";return;}
         if(!SD.exists("/SUITE"))SD.mkdir("/SUITE");
         if(!SD.exists(directory()) && !SD.mkdir(directory())) {
@@ -32,9 +33,14 @@ public:
         if(!dir||!dir.isDirectory()) {
             if(dir)dir.close();status_="Cannot read apps folder";return;
         }
-        while(count_<suite::appmanifest::MaxApps) {
+        // FAT32 directories can contain arbitrary extra files. Never let a
+        // malformed SD card cause an unbounded scan or silently hide overflow.
+        unsigned scanned=0,duplicates=0,mismatchedNames=0;
+        bool capacityExceeded=false,scanTruncated=false;
+        while(scanned<suite::appmanifest::MaxDirectoryEntries) {
             File file=dir.openNextFile();
             if(!file) break;
+            ++scanned;
             if(!file.isDirectory() &&
                file.size()<=suite::appmanifest::MaxManifest) {
                 String filename=file.name();
@@ -46,12 +52,22 @@ public:
                     if(file.readBytes(data,size)==size) {
                         suite::appmanifest::App parsed;
                         if(suite::appmanifest::parse(data,size,parsed)) {
-                            apps_[count_]=parsed;++count_;
+                            if(!suite::appmanifest::manifestFilenameMatches(
+                                   filename.c_str(),parsed)) ++mismatchedNames;
+                            else if(!suite::appmanifest::distinctAppId(
+                                       apps_,count_,parsed)) ++duplicates;
+                            else if(count_<suite::appmanifest::MaxApps)
+                                apps_[count_++]=parsed;
+                            else capacityExceeded=true;
                         }
                     }
                 }
             }
             file.close();
+        }
+        if(scanned==suite::appmanifest::MaxDirectoryEntries) {
+            File extra=dir.openNextFile();
+            if(extra){scanTruncated=true;extra.close();}
         }
         dir.close();
         for(int i=0;i<count_;++i)
@@ -61,8 +77,13 @@ public:
                 }
         loadPreferences();
         rebuild();
-        if(writable_)
-            status_=count_?"Enter install, C category":"No valid .APP manifests";
+        if(writable_) {
+            if(scanTruncated)status_="SD scan limit: list incomplete";
+            else if(capacityExceeded)status_="Too many apps: list incomplete";
+            else if(duplicates)status_="Duplicate app ID ignored";
+            else if(mismatchedNames)status_="APP filename mismatch ignored";
+            else status_=count_?"Enter install, C category":"No valid .APP manifests";
+        }
     }
     void onKey(const Keyboard_Class::KeysState&k,bool ready) {
         if(confirming_) {
