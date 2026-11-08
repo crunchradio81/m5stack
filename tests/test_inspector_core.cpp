@@ -1,5 +1,6 @@
 #include "../src/core/InspectorCore.h"
 #include <cassert>
+#include <initializer_list>
 #include <cstring>
 #include <cstdio>
 using namespace suite::inspect;
