@@ -63,7 +63,9 @@ The device does not start network operations just because the SD card
 contains a profile. Open **Wi-Fi Connection** and press S/Enter to
 connect; press D to disconnect. B returns to the network submenu.
 Other screens require an active Wi-Fi link and initiate work only after
-S/Enter. LAN chat listens only while its screen is open.
+S/Enter. LAN chat listens only while its screen is open; type ASCII
+messages with the keyboard, Enter to send and **Ctrl+B** to return to
+its submenu.
 
 ## Memory/latency limits
 

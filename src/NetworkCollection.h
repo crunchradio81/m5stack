@@ -90,7 +90,8 @@ public:
       if(k.enter)open(chosen_);
       dirty_=true;return;
     }
-    if(letter(k,'b')&&!typing_){
+    if((menu_==7 && k.ctrl && letter(k,'b')) ||
+       (menu_!=7 && letter(k,'b'))){
       stopMode();menu_=-1;dirty_=true;return;
     }
     if(menu_==7) {
@@ -123,7 +124,7 @@ public:
     d.fillRect(0,116,240,19,head);
     d.setTextColor(dim,head);d.setCursor(4,121);
     d.print(menu_<0?"Fn arrows / Enter":menu_==0?"N config S connect D disconnect":
-             menu_==7?"Type message, Enter send, B menu":
+             menu_==7?"Enter send | Ctrl+B menu":
              "S / Enter run | B menu");
     if(menu_<0){
       const int first=chosen_>=7?chosen_-6:0;
