@@ -2,13 +2,13 @@
 
 One native, statically linked firmware for the **stock original 2023 M5Stack Cardputer (K132 / StampS3)**. No Grove unit, external sensor, soldering or expansion board. A FAT32 microSD is optional and uses the device's **built-in slot**.
 
-**P2 MIDI Studio: in development.** Earlier P1/P1.1 source built in CI, but the new MIDI branch still requires a successful CI build and real K132 audio acceptance. Back up your existing firmware and card before flashing.
+**P1–P3 source builds have passed GitHub Actions, but none are certified on a physical original Cardputer.** Back up your firmware and SD files before flashing. Some advanced hardware behavior may need further corrections after field testing.
 
-## Included P1 programs
+## Included P1–P3 applications
 
-| Program | P1 capability |
+| Program | Capability |
 | --- | --- |
-| Home | Seven-app launcher with shared controls |
+| Home | Scrollable 12-app launcher with shared keyboard controls |
 | Notes | Fixed 4 KiB ASCII document, insertion at cursor, arrows, newline, forward/backward delete, Ctrl+S; write via .NEW/.BAK |
 | Calculator | Arithmetic, parentheses, operator precedence, errors |
 | Files | Read-only browsing within /SUITE, subfolders and file selection |
