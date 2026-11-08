@@ -8,12 +8,16 @@
     defined(SUITE_APP_IRTOOLS) || defined(SUITE_APP_WIRELESS) || \
     defined(SUITE_APP_AUDIOLAB) || defined(SUITE_APP_FILETOOLS) || \
     defined(SUITE_APP_NETTOOLS) || \
-    defined(SUITE_APP_MIDITOOLS)
+    defined(SUITE_APP_MIDITOOLS) || \
+    defined(SUITE_APP_ARCADE2)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_MIDITOOLS)
+#if defined(SUITE_APP_ARCADE2)
+#include "Arcade10Collection.h"
+using ActiveApp=Arcade10Collection;
+#elif defined(SUITE_APP_MIDITOOLS)
 #include "MidiExtrasCollection.h"
 using ActiveApp=MidiExtrasCollection;
 #elif defined(SUITE_APP_NETTOOLS)
