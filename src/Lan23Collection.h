@@ -209,7 +209,7 @@ class Lan23Collection {
    uint8_t nonce[16]={};esp_fill_random(nonce,sizeof(nonce));
    char hex[33]={};suite::lan23::toHex(nonce,sizeof(nonce),hex);
    challenge_=String(suite::lan23::ChallengeMagic)+hex;
-   if(peer_.println(challenge_)!=challenge_.length()+2){
+   if(peer_.print(challenge_+"\n")!=challenge_.length()+1){
     endListen("Challenge send failed",true);return;
    }
    activityAt_=now;headerUsed_=0;
