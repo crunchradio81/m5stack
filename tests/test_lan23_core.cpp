@@ -26,7 +26,7 @@ int main(){
  assert(!signatureBody(h,"bad",sign,sizeof(sign)));
  const std::string traversal="K132FILE1|../A.TXT|1024|"+digest+"|"+sig+"\n";
  assert(!parseHeader(traversal.c_str(),traversal.size(),h));
- for(const std::string& value:{"0","0001","262145","4294967296","-1"}){
+ for(const std::string value:{"0","0001","262145","4294967296","-1"}){
   const std::string bad="K132FILE1|VALID.BIN|"+value+"|"+digest+"|"+sig+"\n";
   assert(!parseHeader(bad.c_str(),bad.size(),h));
  }
