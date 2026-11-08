@@ -46,6 +46,8 @@ class SDMedia28Tests(unittest.TestCase):
         for changed in (
             {"MountPoint": "/Volumes/OTHER"},
             {"FilesystemType": "apfs", "FileSystemPersonality": "APFS"},
+            {"FilesystemType": "msdos", "FileSystemPersonality": "MS-DOS FAT16"},
+            {"FilesystemType": "msdos", "FileSystemPersonality": "MS-DOS"},
             {"Internal": True},
             {"Writable": False},
         ):
@@ -89,6 +91,8 @@ class SDMedia28Tests(unittest.TestCase):
                      stdout=json.dumps(data).encode(), stderr=b""),
                  subprocess.CompletedProcess(
                      args=[], returncode=0, stdout=b"0\n0 usb\n", stderr=b""),
+                 subprocess.CompletedProcess(
+                     args=[], returncode=0, stdout=b"FAT32\n", stderr=b""),
              ]):
             self.assertEqual(sd.require_card_media(self.card),
                              self.card.stat().st_dev)
@@ -99,6 +103,25 @@ class SDMedia28Tests(unittest.TestCase):
                           return_value=subprocess.CompletedProcess(
                               args=[], returncode=0,
                               stdout=json.dumps(data).encode(), stderr=b"")):
+            with self.assertRaises(sd.PackError):
+                sd.require_card_media(self.card)
+
+    def test_linux_fat16_mount_cannot_be_used_as_card(self):
+        import subprocess
+        import json
+        info = {"filesystems":[{"target":str(self.card.resolve()),
+                "source":"/dev/sdc1","fstype":"vfat","options":"rw"}]}
+        with patch.object(sd.os.path, "ismount", return_value=True), \
+             patch.object(sd.platform, "system", return_value="Linux"), \
+             patch.object(sd.subprocess, "run", side_effect=[
+                 subprocess.CompletedProcess(
+                     args=[], returncode=0,
+                     stdout=json.dumps(info).encode(), stderr=b""),
+                 subprocess.CompletedProcess(
+                     args=[], returncode=0, stdout=b"0\n0 usb\n", stderr=b""),
+                 subprocess.CompletedProcess(
+                     args=[], returncode=0, stdout=b"FAT16\n", stderr=b"")
+             ]):
             with self.assertRaises(sd.PackError):
                 sd.require_card_media(self.card)
 
