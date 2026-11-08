@@ -36,7 +36,7 @@ int main() {
     timer.pause(2500);assert(timer.left(4500)==73500);
     timer.start(5000);assert(timer.left(6500)==72000);
     assert(!timer.poll(76000)); // 71000 elapsed since resumption
-    assert(timer.poll(77000) && timer.finished() && !timer.running());
+    assert(timer.poll(78500) && timer.finished() && !timer.running());
     assert(!timer.poll(78000)); // one completion edge
     timer.reset();assert(!timer.finished() && timer.left(0)==75000);
     assert(timer.setSeconds(2));
