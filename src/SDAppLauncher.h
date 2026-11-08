@@ -26,13 +26,13 @@ public:
             status_="Cannot create /SUITE/APPS";return;
         }
         File dir=SD.open(directory());
-        if(!dir||!dir.isdirectory()()) {
+        if(!dir||!dir.isDirectory()) {
             if(dir)dir.close();status_="Cannot read apps folder";return;
         }
         while(count_<suite::appmanifest::MaxApps) {
             File file=dir.openNextFile();
             if(!file) break;
-            if(!file.isdirectory()() && file.size()<=suite::appmanifest::MaxManifest) {
+            if(!file.isDirectory() && file.size()<=suite::appmanifest::MaxManifest) {
                 String filename=file.name();
                 const int slash=filename.lastIndexOf('/');
                 if(slash>=0)filename=filename.substring(slash+1);
@@ -166,7 +166,7 @@ private:
         }
         const String path=String(directory())+"/"+app.image;
         File input=SD.open(path,FILE_READ);
-        if(!input||input.isdirectory()()) {
+        if(!input||input.isDirectory()) {
             if(input)input.close();status_="Missing app .BIN";return;
         }
         if(input.size()!=app.size) {
