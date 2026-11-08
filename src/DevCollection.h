@@ -30,7 +30,7 @@ public:
     for(uint8_t v=0;v<16;++v)chip_.key(v,false);
     static const char keys[17]="1234qwerasdfzxcv";
     for(char c:k.word)for(uint8_t v=0;v<16;++v)
-      if(c==keys[v]||c==(keys[v]-32))chip_.key(v,v>=0);
+      if(c==keys[v]||c==(keys[v]-32))chip_.key(v,true);
     for(int n=0;n<9;++n)if(!chip_.step()){
       active_=false;status_="ROM halted (invalid opcode/PC)";break;
     }

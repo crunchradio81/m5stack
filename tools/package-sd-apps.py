@@ -23,6 +23,8 @@ APPS = (
     ("sd_office", "OFFICE", "Pocket Office Collection"),
     ("sd_inspect", "INSPECT", "SD Inspector Collection"),
     ("sd_musiclab", "MUSICLAB", "Music Practice Collection"),
+    ("sd_devtools", "DEVTOOLS", "Developer Tools"),
+    ("sd_system", "SYSTEM", "System Toolbox"),
 )
 MAX_APP_BYTES = 0x300000
 
