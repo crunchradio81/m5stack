@@ -45,5 +45,20 @@ int main(){
   assert(order[0]==0&&order[1]==2);
   assert(filter(apps,5,Category::All,p,"pocket",order,8)==1&&order[0]==3);
   assert(filter(apps,5,Category::All,p,"NOTHING",order,8)==0);
-  puts("Launcher2: categories, favorites, recency, search and malformed config PASS");
+  // The 64-entry browser stays within one-byte index limits and retains
+  // final-row navigation; these are source tests, not 64 physical firmwares.
+  App full[suite::appmanifest::MaxApps]={};
+  uint8_t fullOrder[suite::appmanifest::MaxApps]={};
+  for(unsigned i=0;i<suite::appmanifest::MaxApps;++i){
+    strcpy(full[i].id,"METRONOME");
+    strcpy(full[i].name,"Metronome");
+  }
+  const int filled=filter(full,suite::appmanifest::MaxApps,
+                          Category::All,p,"",fullOrder,
+                          suite::appmanifest::MaxApps);
+  assert(filled==suite::appmanifest::MaxApps);
+  assert(fullOrder[0]==0 && fullOrder[filled-1]==filled-1);
+  assert(filter(full,suite::appmanifest::MaxApps+1,Category::All,p,
+                "",fullOrder,suite::appmanifest::MaxApps)==0);
+  puts("Launcher2: categories, favorites, recency, search, 64 slots and malformed config PASS");
 }

@@ -2,7 +2,7 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P16 and Launcher 2.0 have passed automated builds. P17 adds verified SD backup tools and a searchable multi-file notebook; final CI and physical hardware acceptance are separately required. None of the firmware has been physically tested on an original K132.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**Current development tip: P23 provides 30 native SD firmware packages, with C64 packaged separately; P24 hardens the launcher for up to 64 catalog entries and 256 scanned SD directory entries. Both firmware builds and real hardware acceptance are separate gates. None of the firmware has been physically tested on an original K132.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
 ## Resident suite and SD application collections
 

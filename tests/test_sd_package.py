@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory() as directory:
         (dest / "firmware.bin").write_bytes(b"\xe9" + bytes([n])*127)
     archive = tmp / "apps.zip"
     # Regression: launcher cannot parse NAME of 30+ bytes.
-    assert len(packer.APPS) <= 32
+    assert len(packer.APPS) <= 64
     assert all(0 < len(label) < 30 for _, _, label in packer.APPS)
     original = packer.APPS
     env, app_id, _ = original[0]
@@ -31,6 +31,23 @@ with tempfile.TemporaryDirectory() as directory:
             raise AssertionError("Overlong launcher NAME was accepted")
         except ValueError:
             pass
+    finally:
+        packer.APPS = original
+    # Reject conflicting IDs and oversized catalogs before touching the
+    # output archive (no accidental partial SD package).
+    try:
+        packer.APPS = original + (original[0],)
+        try:
+            packer.package(build, tmp / "duplicate.zip")
+            raise AssertionError("Duplicate app ID accepted")
+        except ValueError:
+            assert not (tmp / "duplicate.zip").exists()
+        packer.APPS = original * 3
+        try:
+            packer.package(build, tmp / "over-capacity.zip")
+            raise AssertionError("More than 64 firmware entries accepted")
+        except ValueError:
+            assert not (tmp / "over-capacity.zip").exists()
     finally:
         packer.APPS = original
     files = packer.package(build, archive)
