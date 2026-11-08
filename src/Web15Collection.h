@@ -13,6 +13,7 @@
 #include <time.h>
 #include "core/Net8Core.h"
 #include "core/Web15Core.h"
+#include "core/Rss21Core.h"
 class Web15Collection {
 public:
  void begin(){
@@ -40,10 +41,14 @@ public:
    if(mode_<0){
      if(k.up&&menu_>0)--menu_;
      if(k.down&&menu_<5)++menu_;
-     if(k.enter){mode_=menu_;status_="Press S / Enter to run";dirty_=true;}
+     if(k.enter){mode_=menu_;rssReady_=false;rssSelected_=0;status_="Press S / Enter to run";dirty_=true;}
      return;
    }
    if(letter(k,'b')){mode_=-1;dirty_=true;return;}
+   if(mode_==2 && rssReady_){
+    if(k.up&&rssSelected_>0)--rssSelected_;
+    if(k.down&&rssSelected_+1<static_cast<int>(rss_.count))++rssSelected_;
+   }
    if(letter(k,'r')){loadNetwork();loadWeb();loadCA();}
    if(letter(k,'s')||k.enter){
      if(mode_==0)connect();
@@ -73,6 +78,7 @@ public:
    d.setTextColor(dim,head);d.setCursor(5,121);
    d.print(mode_<0?"Fn arrows / Enter":
       mode_==0?"S connect D disconnect R reload":
+      mode_==2?"S fetch  up/down select  B menu":
       "S verified HTTPS GET R config B");
    if(mode_<0){
      for(int i=0;i<6;++i){
@@ -86,6 +92,21 @@ public:
    d.setTextColor(cyan,bg);d.setCursor(5,27);
    d.print(WiFi.status()==WL_CONNECTED?"Wi-Fi ONLINE":connecting_?
      "CONNECTING...":"Wi-Fi OFFLINE");
+   if(mode_==2&&rssReady_){
+     d.setTextColor(green,bg);d.setCursor(5,27);
+     d.print(String("Verified feed, ")+rss_.count+" titles"+
+       (rss_.capped?" (more)":""));
+     const int top=rssSelected_>=6?rssSelected_-5:0;
+     for(int i=top;i<static_cast<int>(rss_.count)&&i<top+6;++i){
+      const int y=40+(i-top)*11;
+      if(i==rssSelected_)d.fillRect(3,y-1,234,11,sel);
+      d.setTextColor(white,i==rssSelected_?sel:bg);
+      d.setCursor(5,y);
+      d.print(String(i+1)+". "+String(rss_.titles[i]).substring(0,34));
+     }
+     d.setTextColor(dim,bg);d.setCursor(5,108);
+     d.print(status_.substring(0,37));return;
+   }
    if(mode_==0){
      d.setTextColor(white,bg);d.setCursor(5,43);
      d.print(netOk_?String("SSID: ")+net_.ssid:"No NET.CFG");
@@ -128,6 +149,9 @@ private:
  uint32_t started_=0;
  char ca_[4097]={},raw_[3073]={};
  String status_,display_,content_;
+ suite::rss21::Feed rss_;
+ bool rssReady_=false;
+ int rssSelected_=0;
  bool readSmall(const char*path,char*out,size_t cap,size_t&len){
    len=0;if(!sd_)return false;
    File f=SD.open(path,FILE_READ);
@@ -237,14 +261,16 @@ private:
        else status_="No basic text found";
      }
    }else if(mode_==2){
+     rssReady_=false;rssSelected_=0;
      if(!suite::web15::validHost(web_.rssHost)){
        status_="Configure RSS_HOST";return;
      }
      if(https(web_.rssHost,web_.rssPath)){
-       char title[160]={};
-       if(suite::web15::firstRssTitle(raw_,title,sizeof(title)))
-         content_=title;
-       else status_="No RSS item/title in first 3KiB";
+       suite::rss21::Feed parsed;
+       if(suite::rss21::parse(raw_,strlen(raw_),parsed)){
+         rss_=parsed;rssReady_=true;
+         status_=String("RSS/Atom: ")+rss_.count+" first titles";
+       }else status_="No complete RSS/Atom item in 3KiB";
      }
    }else if(mode_==3){
      char path[210]={};
