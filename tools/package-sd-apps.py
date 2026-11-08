@@ -37,19 +37,30 @@ APPS = (
     ("sd_music2", "MUSIC2", "Music Production Studio"),
     ("sd_dev2", "DEV2", "Developer Studio II"),
     ("sd_websecure", "WEBSECURE", "Verified HTTPS Web Tools"),
-    ("sd_themes", "THEMES", "Theme Editor and Settings Profiles"),
+    ("sd_themes", "THEMES", "Theme and Profile Editor"),
     ("sd_notebook", "NOTEBOOK", "Notebook and Verified Backups"),
     ("sd_safefiles", "SAFEFILES", "Verified USER File Library"),
     ("sd_gameboy", "GAMEBOY", "Original Game Boy Emulator"),
-    ("sd_field2", "FIELD2", "Wireless History Clock LAN Lab"),
-    ("sd_macremote", "MACREMOTE", "macOS Macro Keys and Remote Mouse"),
-    ("sd_lanfiles", "LANFILES", "Authenticated LAN File Transfer"),
+    ("sd_field2", "FIELD2", "Field Lab Clock and LAN"),
+    ("sd_macremote", "MACREMOTE", "Mac Keyboard and Mouse Remote"),
+    ("sd_lanfiles", "LANFILES", "LAN SD File Transfer"),
     ("sd_gattview", "GATTVIEW", "BLE GATT Metadata Explorer"),
 )
 MAX_APP_BYTES = 0x300000
 
 
 def package(root: Path, destination: Path, artifact_layout: bool = False):
+    # The on-device parser has char name[30], char id[12], MaxApps=32.
+    # Check all entries before attempting any firmware package writes.
+    if len(APPS) > 32:
+        raise ValueError("More apps than the original K132 launcher supports")
+    for environment, app_id, label in APPS:
+        if not 1 <= len(label) < 30 or not label.isascii() or not label.isprintable():
+            raise ValueError(f"{app_id}: NAME exceeds 29 ASCII characters")
+        if not 1 <= len(app_id) < 12 or not all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in app_id):
+            raise ValueError(f"{app_id}: invalid app ID")
+        if len(app_id + ".BIN") > 40:
+            raise ValueError(f"{app_id}: IMAGE field too long")
     output = []
     for environment, app_id, label in APPS:
         base = (root / f"cardputer-k132-{environment}-unverified"
