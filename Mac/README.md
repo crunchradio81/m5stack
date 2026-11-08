@@ -92,3 +92,21 @@ The separate LAN File Transfer tab uses its own LAN.CFG key and rejects
 non-private addresses before subprocess invocation. The two secrets
 are deliberately unrelated. See docs/P26_MAC_ONBOARDING.md for the
 install, export and hardware-acceptance steps.
+
+
+## P27: GUI installation of all 30 K132 SD applications
+
+The third native Mac tab, **Install SD Apps**, lets the owner select a
+complete, trusted Cardputer SD Apps ZIP, select their mounted FAT32 SD
+card volume root, run a read-only preflight of all 30 app/manifest pairs,
+then explicitly copy only new files. SHA-256, ESP32 app header, paths,
+size/field limits and existing-file byte equality are checked before
+any writes. Existing files are never replaced. If interrupted, partial
+new files are deliberately left for manual inspection; the tool does not
+automatically delete them. It is *not* a factory firmware flasher.
+The exact Python 3 standard-library validator is bundled as
+Contents/Resources/sdpack27.py in the ad-hoc signed Mac app.
+
+For CLI/macOS/Ubuntu operation and full safety limitations, see
+docs/P27_NATIVE_SD_INSTALLER.md. A manifest SHA-256 is not a signature;
+use only original trusted GitHub build archives.
