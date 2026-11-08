@@ -19,7 +19,7 @@ public:
         reset();
     }
     void reset() {
-        memset(voices_,0,sizeof(voices_));
+        for(auto &voice:voices_) voice=Voice{};
         for(size_t i=0;i<16;++i) {
             program_[i]=0; volume_[i]=100;expression_[i]=127;
             bend_[i]=8192;sustain_[i]=false;
@@ -27,7 +27,7 @@ public:
         memset(muted_,0,sizeof(muted_));
         totalStarts_=0;
     }
-    void allSoundOff() { memset(voices_,0,sizeof(voices_)); }
+    void allSoundOff() { for(auto &voice:voices_) voice=Voice{}; }
     void muteTrack(uint8_t track,bool muted) {
         if(track>=16) return;
         muted_[track]=muted;
