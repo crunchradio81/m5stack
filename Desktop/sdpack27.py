@@ -41,8 +41,8 @@ def validate_macos_volume(info: dict, root: Path) -> None:
         raise PackError("SD selected path is not the exact mounted volume root")
     fs = " ".join(str(info.get(k, "")) for k in
                   ("FilesystemType", "FileSystemPersonality", "Type", "FilesystemName")).lower()
-    if not ("fat32" in fs or "msdos" in fs or "ms-dos fat" in fs):
-        raise PackError("Cardputer requires a FAT32/MS-DOS removable volume")
+    if "fat32" not in fs:
+        raise PackError("Cardputer requires verified FAT32 (not generic FAT12/FAT16/MS-DOS)")
     if info.get("Internal") is not False and not info.get("RemovableMedia") and not info.get("Ejectable"):
         raise PackError("Selected Mac volume is not verified external/removable")
     if info.get("ReadOnlyVolume") is True or info.get("Writable") is False:
@@ -115,6 +115,15 @@ def require_card_media(root: Path) -> int:
         except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             raise PackError("Cannot verify Linux SD removable/USB transport; copy blocked") from exc
         validate_linux_transport(transport.stdout.decode("utf-8", errors="replace"))
+        try:
+            version = subprocess.run(
+                ["lsblk", "-n", "-o", "FSVER", source],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                timeout=8, check=True)
+        except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+            raise PackError("Cannot verify FAT32 filesystem version on Linux") from exc
+        if version.stdout.decode("utf-8", errors="replace").strip().upper() != "FAT32":
+            raise PackError("Cardputer requires verified FAT32; FAT12/FAT16 is not supported")
     else:
         raise PackError("SD writing unsupported on this operating system")
     return real.stat().st_dev
