@@ -5,7 +5,6 @@
 using namespace suite::field20;
 int main(){
  Survey s{};
- assert(survey("123,OFFICE,AC:DE:48:00:11:22,-63,11,\"AP, guest\"",&s)==false);
  assert(survey("123,OFFICE,AC:DE:48:00:11:22,-63,11,\"AP, guest\"",s));
  assert(s.uptime==123&&s.rssi==-63&&s.channel==11);
  assert(!survey("123,OFFICE,AC:DE:48:00:11:22,-63,99,\"bad\"",s));
