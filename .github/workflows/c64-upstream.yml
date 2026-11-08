@@ -25,6 +25,7 @@ jobs:
           python3 tools/package-c64-upstream.py \
             --binary builds/c64/C64.BIN \
             --source "$RUNNER_TEMP/p20-c64/source" \
+            --open-source "$RUNNER_TEMP/p20-c64/open-roms" \
             --out Cardputer-P20-C64-SD-App.zip
       - uses: actions/upload-artifact@v4
         with:
