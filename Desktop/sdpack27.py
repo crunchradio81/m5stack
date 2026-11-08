@@ -64,6 +64,16 @@ def validate_linux_volume(info: dict, root: Path) -> None:
         raise PackError("Selected SD card is mounted read-only")
 
 
+def validate_linux_transport(output: str) -> None:
+    """A vfat partition is insufficient: require a removable/USB ancestor."""
+    rows = [row.split() for row in output.splitlines() if row.strip()]
+    if not rows or not any(
+        row[0] == "1" or any(value.lower() == "usb" for value in row[1:])
+        for row in rows
+    ):
+        raise PackError("Linux SD card must be on a USB transport or removable block device")
+
+
 def require_card_media(root: Path) -> int:
     """Guard every *write*, not just the preflight. Return device identity."""
     _no_symlink_dir(root, must_exist=True)
@@ -95,6 +105,16 @@ def require_card_media(root: Path) -> int:
         except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             raise PackError("Cannot verify Linux FAT32 block-device mount; copy blocked") from exc
         validate_linux_volume(info, real)
+        # Mounts can be vfat on an internal system disk; verify media type.
+        source = info["filesystems"][0]["source"]
+        try:
+            transport = subprocess.run(
+                ["lsblk", "-s", "-n", "-o", "RM,TRAN", source],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                timeout=8, check=True)
+        except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+            raise PackError("Cannot verify Linux SD removable/USB transport; copy blocked") from exc
+        validate_linux_transport(transport.stdout.decode("utf-8", errors="replace"))
     else:
         raise PackError("SD writing unsupported on this operating system")
     return real.stat().st_dev
