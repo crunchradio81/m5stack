@@ -81,6 +81,13 @@ GitHub Actions compiles the factory launcher and twenty-five SD app firmware ima
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
+## P25 advanced MIDI seek (source, hardware acceptance pending)
+
+MIDI Studio and Karaoke now implement J/F ten-second backwards/forwards
+musical-time seek using bounded SD streaming scans. Notes that start before
+the seek position are not retriggered. See
+[the P25 design and hardware gates](docs/P25_MIDI_SEEK.md).
+
 ## Controls
 
 | Screen | Controls |
