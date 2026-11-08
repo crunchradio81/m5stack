@@ -4,7 +4,7 @@
 must remain compatible with the **original K132**, without Grove units, external
 sensors, PSRAM, a camera, GPS, 5/6 GHz Wi-Fi or a headphone socket.
 
-Statuses: **Built source** means merged/source code exists, not hardware verified;
+Statuses: **Built source** means source code exists, not necessarily merged or hardware verified;
 **Active** means the app is under implementation; **Planned** means no claim of code.
 
 ## P1 platform (built source, hardware acceptance pending)
@@ -14,7 +14,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P2 media — first major subsystem
 
-1. **MIDI Studio** — **Active:** Standard MIDI Files Type 0/1, PPQN,
+1. **MIDI Studio** — **Built source, hardware pending:** Standard MIDI Files Type 0/1, PPQN,
    multitrack timing, song library, synth, playback, mute/solo, loop, speed
    control. Full GM sample-based accuracy is not currently supported.
 2. MIDI Lyric/Karaoke Viewer — **Planned:** text and synchronized lyric events
@@ -69,15 +69,15 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 42. Calendar — **Planned** (needs clock sync/manual date)
 43. Contacts — **Planned**
 44. Scientific Calculator — **Planned**
-45. Programmer Calculator — **Planned**
+45. Programmer Calculator — **Built source, hardware pending**
 46. Spreadsheet Mini — **Planned**
 47. Expenses / Budget Tracker — **Planned**
 48. Password Generator — **Planned** (system RNG)
 49. Encrypted Password Vault — **Planned** (security review required)
 50. Personal Journal — **Planned**
-51. Stopwatch / Lap Timer — **Planned**
-52. Countdown Timers — **Planned**
-53. Unit Converter — **Planned**
+51. Stopwatch / Lap Timer — **Built source, hardware pending**
+52. Countdown Timers — **Built source, hardware pending**
+53. Unit Converter — **Built source, hardware pending**
 
 ## P5 programming and diagnostics (12)
 
@@ -87,8 +87,8 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 57. Hex Viewer / Editor — **Planned**, backup-required writes
 58. USB Serial Console — **Planned**, available USB roles only
 59. ASCII / Unicode Table — **Planned**
-60. Binary/Octal/Decimal/Hex Converter — **Planned**
-61. Logic and Bit Calculator — **Planned**
+60. Binary/Octal/Decimal/Hex Converter — **Partially in Programmer Calculator (source)**
+61. Logic and Bit Calculator — **Partially in Programmer Calculator (source)**
 62. JSON Inspector — **Planned**
 63. QR Code Generator — **Planned** (display-only)
 64. CHIP-8 Interpreter — **Planned**

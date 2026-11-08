@@ -23,19 +23,32 @@ Target: original K132 with built-in peripherals; **no external Grove units**.
 - No Grove, GPS or external hardware; no 5 GHz or client sniffing.
 - **Gate pending:** hardware SD removal/recovery, passive scan and walking tests.
 
-## P2 — personal tools
+## P2 — MIDI Studio (source built, hardware pending)
+- Streaming Standard MIDI File Type 0/1, fixed 12-voice waveform synthesizer.
+- Song browser, tempo/speed, transposition, looping, mute/solo and visual meter.
+- Sample-based instruments, playlists, seeking and lyrics still planned.
+- **Gate pending:** physical original K132 speaker + SD + keyboard tests.
+
+## P3 — offline pocket tools (source built, hardware pending)
+- Stopwatch with eight laps, pause/resume and elapsed time measured by uptime.
+- Countdown timer with HHMMSS entry, pause/resume/reset and visual completion.
+- Sixteen unit-conversion directions and unsigned 32-bit programmer calculator.
+- Host-side negative cases, 32-bit rollover and numeric overflow tests.
+- **Gate pending:** physical original K132 acceptance in docs/P3_ACCEPTANCE.md.
+
+## P4 — expanded personal tools
 - Editable named text documents with explicit Save As and confirmation prompts.
 - File manager copy/rename/delete only after tested backup and undo behaviors.
-- Stopwatch, timer, TODO, calendar/date support, expanded calculator.
+- TODO, calendar/date support, expanded calculator.
 - Input regression fixture for all Fn/modifier combinations.
 
-## P3 — communication and development
+## P5 — communication and development
 - Wi-Fi connection manager with local credential storage policy.
 - NTP time sync, HTTP/JSON reader, local LAN messaging.
 - Tiny BASIC or script interpreter with strict resource and I/O quotas.
 - BLE scanner using only built-in radio.
 
-## P4 — media and games
+## P6 — media and games
 - Mono audio recorder/player (streaming, limited formats).
 - IR transmit remote, synth/sequencer, compact retro games.
 - User-friendly backup/restore and multi-firmware launcher integration only
