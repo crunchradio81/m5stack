@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // P12 independent SD Arcade 3: chess, Klondike, Sudoku and Dungeon.
 // Only stock original K132 keyboard/display, no audio/Grove/PSRAM.
 #include <Arduino.h>
@@ -9,7 +10,8 @@
 #include "core/P12Puzzles.h"
 class Arcade12Collection {
 public:
- void begin(){mode_=-1;menu_=0;dirty_=true;selX_=selY_=0;fromX_=-1;}
+ void begin(){
+        SPI.begin(40,39,14,12);SD.begin(12,SPI,10000000);mode_=-1;menu_=0;dirty_=true;selX_=selY_=0;fromX_=-1;}
  void exit(){}
  void poll(){}
  bool dirty()const{return dirty_;}
@@ -30,8 +32,15 @@ public:
  }
  void render(){
    dirty_=false;auto&d=M5Cardputer.Display;
-   constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,
-     cyan=0x05ff,green=0x5fe9,sel=0x2673,dim=0xad55,red=0xf926;
+   const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        green=p.good,
+        sel=p.selected,
+        dim=p.muted,
+        red=p.warning;
    d.fillScreen(bg);d.fillRect(0,0,240,23,head);
    d.setTextColor(white,head);d.setCursor(5,7);
    d.print(mode_<0?"ARCADE 3":names(mode_));

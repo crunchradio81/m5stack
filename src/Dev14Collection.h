@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // P14 original Cardputer K132 developer SD collection: BASIC Studio,
 // syntax-colored code editor, guarded hex editor, USB CDC console,
 // and bounded SD user-content search. No arbitrary system calls or PSRAM.
@@ -104,8 +105,14 @@ public:
  }
  void render(){
    dirty_=false;auto&d=M5Cardputer.Display;
-   constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,
-      cyan=0x05ff,green=0x5fe9,sel=0x2673,dim=0xad55;
+   const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        green=p.good,
+        sel=p.selected,
+        dim=p.muted;
    d.fillScreen(bg);d.fillRect(0,0,240,23,head);
    d.setTextColor(white,head);d.setCursor(5,7);
    d.print(mode_<0?"DEVELOPER STUDIO":names(mode_));
