@@ -9,12 +9,16 @@
     defined(SUITE_APP_AUDIOLAB) || defined(SUITE_APP_FILETOOLS) || \
     defined(SUITE_APP_NETTOOLS) || \
     defined(SUITE_APP_MIDITOOLS) || \
-    defined(SUITE_APP_ARCADE2)
+    defined(SUITE_APP_ARCADE2) || \
+    defined(SUITE_APP_POCKET11)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_ARCADE2)
+#if defined(SUITE_APP_POCKET11)
+#include "Pocket11Collection.h"
+using ActiveApp=Pocket11Collection;
+#elif defined(SUITE_APP_ARCADE2)
 #include "Arcade10Collection.h"
 using ActiveApp=Arcade10Collection;
 #elif defined(SUITE_APP_MIDITOOLS)
