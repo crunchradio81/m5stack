@@ -78,7 +78,7 @@ private:
      if(r==1){sx=cy;sy=3-cx;}
      if(r==2){sx=3-cx;sy=3-cy;}
      if(r==3){sx=3-cy;sy=cx;}
-     if(!(shapes_[type_]&(static_cast<uint16_t>(1u)<<(sy*4+sx))))continue;
+     if(!(shape(type_)&(static_cast<uint16_t>(1u)<<(sy*4+sx))))continue;
      const int bx=x+cx,by=y+cy;
      if(bx<0||bx>=W||by>=H||by<0)return true;
      if(board_[by][bx])return true;
