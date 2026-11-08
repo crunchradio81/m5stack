@@ -1,4 +1,7 @@
 name: P20 pinned GPL C64 adapted original K132 build
+concurrency:
+  group: p20-c64-${{ github.ref }}
+  cancel-in-progress: true
 on:
   push:
     branches: [feature/cardputer-k132-p20-c64-import-field-suite]
