@@ -84,7 +84,8 @@ inline bool parseIrProfile(const char*text,size_t n,NecProfile&dest){
     if(*cur==','||*cur==0){
       if(fieldsCount==8)return false;
       const bool end=*cur==0;*cur=0;fields[fieldsCount++]=start;
-      if(end)break;start=cur+1;
+      if(end)break;
+      start=cur+1;
     }
   }
   if(fieldsCount!=8||strcmp(fields[0],"IRP1")||!fields[1][0]||
@@ -92,7 +93,8 @@ inline bool parseIrProfile(const char*text,size_t n,NecProfile&dest){
   for(const char*p=fields[1];*p;++p)
     if(*p<32||*p>126||*p==',')return false;
   NecProfile p;strcpy(p.name,fields[1]);uint32_t v=0;
-  if(!validHex(fields[2],4,v))return false;p.address=static_cast<uint16_t>(v);
+  if(!validHex(fields[2],4,v))return false;
+  p.address=static_cast<uint16_t>(v);
   uint8_t*outputs[]={&p.power,&p.up,&p.down,&p.mute,&p.play};
   for(int i=0;i<5;++i){
     if(!validHex(fields[i+3],2,v))return false;
@@ -130,9 +132,11 @@ inline bool csvEscape(const char*in,char*out,size_t cap){
     const uint8_t c=static_cast<uint8_t>(*in);
     if(c=='\r'||c=='\n'||c<32)return false;
     if(c=='"'){
-      if(p+3>=cap)return false;out[p++]='"';out[p++]='"';
+      if(p+3>=cap)return false;
+      out[p++]='"';out[p++]='"';
     }else{
-      if(p+2>=cap)return false;out[p++]=static_cast<char>(c);
+      if(p+2>=cap)return false;
+      out[p++]=static_cast<char>(c);
     }
   }
   out[p++]='"';out[p]=0;return true;
