@@ -25,7 +25,8 @@ inline bool contains(const char*text,const char*needle){
       char x=*a,y=*b;
       if(x>='a'&&x<='z')x=static_cast<char>(x-32);
       if(y>='a'&&y<='z')y=static_cast<char>(y-32);
-      if(x!=y)break;++a;++b;
+      if(x!=y)break;
+      ++a;++b;
     }
     if(!*b)return true;
   }
@@ -41,10 +42,14 @@ public:
    clear();memcpy(data_,src,n);len_=n;return true;
  }
  bool set(size_t offset,uint8_t value){
-   if(offset>=len_)return false;data_[offset]=value;return true;
+   if(offset>=len_)return false;
+   data_[offset]=value;
+   return true;
  }
  bool append(uint8_t value){
-   if(len_>=Max)return false;data_[len_++]=value;return true;
+   if(len_>=Max)return false;
+   data_[len_++]=value;
+   return true;
  }
  uint8_t at(size_t i)const{return i<len_?data_[i]:0;}
  size_t size()const{return len_;}
@@ -77,11 +82,11 @@ public:
    char output[12][48]={};
  };
  struct Line {uint16_t number=0;char code[LineSize+1]={};};
- void clear(){size_=0;memset(lines_,0,sizeof(lines_));}
+ void clear(){size_=0;for(auto&line:lines_)line=Line{};}
  Program(){clear();}
  unsigned count()const{return size_;}
- uint16_t number(unsigned i)const{return i<size_?lines_[i].number:0;}
- const char*statement(unsigned i)const{return i<size_?lines_[i].code:"";}
+ uint16_t number(unsigned i)const{return i<static_cast<unsigned>(size_)?lines_[i].number:0;}
+ const char*statement(unsigned i)const{return i<static_cast<unsigned>(size_)?lines_[i].code:"";}
  bool put(unsigned number,const char*command){
    if(number<1||number>9999||!command||strlen(command)>LineSize)return false;
    for(const char*p=command;*p;++p)
@@ -144,7 +149,7 @@ public:
      result.status=Status::InvalidProgram;return result;
    }
    unsigned pc=0;
-   while(pc<size_){
+   while(pc<static_cast<unsigned>(size_)){
      if(result.steps>=maxSteps){
        result.status=Status::StepLimit;return result;
      }
