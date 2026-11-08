@@ -2,7 +2,7 @@
 
 One native, statically linked firmware for the **stock original 2023 M5Stack Cardputer (K132 / StampS3)**. No Grove unit, external sensor, soldering or expansion board. A FAT32 microSD is optional and uses the device's **built-in slot**.
 
-**P1/P1.1 status: compiled by GitHub Actions; not flashed or hardware-certified.** A real original-K132 acceptance run is still required. Back up your existing firmware and card before flashing.
+**P2 MIDI Studio: in development.** Earlier P1/P1.1 source built in CI, but the new MIDI branch still requires a successful CI build and real K132 audio acceptance. Back up your existing firmware and card before flashing.
 
 ## Included P1 programs
 
@@ -15,6 +15,7 @@ One native, statically linked firmware for the **stock original 2023 M5Stack Car
 | Text Viewer | Preview supported text files to 4 KiB; no binary or oversized file loading |
 | Wi-Fi Scan | Async SSID/RSSI list; no connection or password harvesting |
 | Wi-Fi Logger | Start/Pause, repeated passive 2.4 GHz AP scans, CSV on SD, full details, saved-record browsing, confirmed Erase |
+| MIDI Studio (P2 feature) | Type 0/1 Standard MIDI File streaming, 12-voice internal-speaker synth, tempo changes, track mute/solo, loop, speed and volume controls |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -52,6 +53,9 @@ Do not flash until the build passes. The CI workflow runs C++ host tests and a P
 | Saved Wi-Fi Log | Fn+Up older saved record; Fn+Down newer; B/Backspace back |
 | Wi-Fi Details | B/Backspace back |
 | Erase Confirmation | Y erases only WIFI.CSV; N/Backspace cancels |
+| MIDI Library | Put .MID or .MIDI files in /SUITE/MIDI on SD. Fn Up/Down select, Enter load, R rescan |
+| MIDI Player | Enter/Space/P pause/resume; N next; Z restart; L loop; +/- speed 50–200%; [ / ] speaker volume; M tracks; H help; B library |
+| MIDI Mixer | Fn Up/Down select track; Enter or M mute; S solo; B player |
 | Settings | Fn+Up / Fn+Down select option; Fn+Left / Fn+Right or Enter change |
 
 The original keyboard's arrow and Escape functions are on the Fn layer; the code reads the official M5Cardputer key-state fields.
@@ -61,6 +65,29 @@ The original keyboard's arrow and Escape functions are on the Fn layer; the code
 If a FAT32 microSD card is mounted, the suite creates /SUITE. Notes live at /SUITE/NOTES.TXT; preferences at /SUITE/CONFIG.TXT. A save first writes and checks a .NEW file, renames the previous version to .BAK, then installs the new file. On next boot, a missing primary file is recovered from .BAK if available. **FAT SD storage is not power-loss transactional:** avoid power cycling during writes and keep your own backups.
 
 Notes or preview files larger than 4096 bytes, or containing non-ASCII content, are rejected rather than silently truncated. An invalid existing note is protected from overwrite. Without SD, edits and settings are temporary.
+
+## P2 MIDI Studio (first major advanced app)
+
+MIDI Studio is built for the **original Cardputer's internal speaker**, not an external MIDI module.
+Copy Standard MIDI Files (.mid / .midi) to the built-in microSD slot under /SUITE/MIDI/.
+Open **MIDI Studio** from the launcher, select a file and press Enter.
+
+The streaming parser supports **SMF Type 0 and 1**, up to **16 tracks**, PPQN timing,
+running status, tempo/time signature events, program changes, note on/off, pitch bend,
+volume, expression, sustain, all-notes-off and channel 10 percussion.
+Tracks are merged chronologically. A **12-voice software synthesizer** renders
+22.05 kHz 16-bit mono PCM for the built-in speaker.
+
+Player keys: Enter/Space/P pause or resume, B browse, N next, Z restart,
+L loop, +/- speed 50–200%, brackets volume, M mixer, H help.
+Mixer keys: Fn Up/Down select track, Enter/M mute, S solo, B back.
+Home/escape stops audio and closes the MIDI file.
+
+**Limitations:** Instruments are light waveform approximations, not a sampled General MIDI
+SoundFont. MIDI files over 4 MiB, SMF Type 2, SMPTE divisions and over 16 tracks
+are intentionally rejected. Lyrics/KAR, sampled instruments, playlists and seeking
+remain on the roadmap. Speaker output, keyboard and timing await physical K132 tests.
+Start at low volume.
 
 ## Walking Wi-Fi logger (no add-ons)
 
@@ -91,6 +118,7 @@ Fields: session ID (new on boot), milliseconds since boot, scan sequence, access
 
 - [Acceptance checklist](docs/ACCEPTANCE.md)
 - [Milestone roadmap](docs/ROADMAP.md)
+- [Complete 94-program application backlog](docs/APP_CATALOG.md)
 
 ## Sources
 
