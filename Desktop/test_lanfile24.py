@@ -75,12 +75,13 @@ class DesktopProtocolTests(unittest.TestCase):
         with self.assertRaises(lan.TransferError):
             lan.parse_header(header, nonce, bytes([255]*32))
 
-    def _pair(self, folder: Path, *, server_key=SECRET):
+    def _pair(self, folder: Path, *, server_key=SECRET, progress=None):
         reply = queue.Queue()
         def receiver():
             try:
                 reply.put(("ok", lan.serve_once("127.0.0.1", folder, server_key,
-                    allow_loopback=True, ready=lambda port: ports.put(port))))
+                    allow_loopback=True, ready=lambda port: ports.put(port),
+                    progress=progress)))
             except Exception as exc:
                 reply.put(("error", exc))
         ports = queue.Queue()
@@ -116,6 +117,30 @@ class DesktopProtocolTests(unittest.TestCase):
             self.assertEqual(status, "error")
             self.assertIsInstance(exc, lan.TransferError)
             self.assertEqual((inbox / "REAL.BIN").read_bytes(), payload)
+
+    def test_progress_events_match_real_payload_bytes(self):
+        with tempfile.TemporaryDirectory() as root:
+            folder = Path(root)
+            inbox = folder / "INBOX"
+            inbox.mkdir()
+            source = folder / "METER.BIN"
+            source.write_bytes(bytes(range(256)) * 257)
+            tx, rx = [], []
+            port, result, thread = self._pair(
+                inbox, progress=lambda sent, total: rx.append((sent, total)))
+            sent = lan.send_file(
+                "127.0.0.1", source, SECRET, port=port,
+                allow_loopback=True, progress=lambda done, total: tx.append((done, total)))
+            self.assertIn("METER.BIN", sent)
+            self.assertEqual(result.get(timeout=7)[0], "ok")
+            thread.join(timeout=2)
+            self.assertEqual(tx[0], (0, source.stat().st_size))
+            self.assertEqual(rx[0], (0, source.stat().st_size))
+            self.assertEqual(tx[-1], (source.stat().st_size, source.stat().st_size))
+            self.assertEqual(rx[-1], (source.stat().st_size, source.stat().st_size))
+            self.assertTrue(all(a[0] <= b[0] for a, b in zip(tx, tx[1:])))
+            self.assertTrue(all(a[0] <= b[0] for a, b in zip(rx, rx[1:])))
+            self.assertEqual((inbox / "METER.BIN").read_bytes(), source.read_bytes())
 
     def test_wrong_key_fails_before_file_creation(self):
         with tempfile.TemporaryDirectory() as root:

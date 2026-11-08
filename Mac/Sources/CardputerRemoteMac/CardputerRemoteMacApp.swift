@@ -305,8 +305,17 @@ struct CardputerRemoteMacApp: App {
     @StateObject private var model = RemoteModel()
     var body: some Scene {
         WindowGroup("Cardputer Remote Mac") {
-            RemoteContentView(model:model)
-                .frame(minWidth:560,minHeight:575)
+            TabView {
+                RemoteContentView(model: model)
+                    .tabItem {
+                        Label("Macros & Mouse", systemImage: "keyboard")
+                    }
+                LanFileTransferView()
+                    .tabItem {
+                        Label("LAN File Transfer", systemImage: "arrow.left.arrow.right.square")
+                    }
+            }
+            .frame(minWidth: 690, minHeight: 660)
         }
         MenuBarExtra("Cardputer Remote",systemImage:"keyboard") {
             Text(model.enabled ? "LAN remote ON" : "Remote OFF")
