@@ -74,6 +74,7 @@ def prepare(work:Path, owner_roms:Path|None=None):
             '''  // Stock K132: SD is SPI with GPIO12 chip-select, not SD_MMC.
   SPI.begin(SD_SCLK_PIN,SD_MISO_PIN,SD_MOSI_PIN,PWR_EN_PIN);
   bool rlst = SD.begin(PWR_EN_PIN,SPI,10000000);''')
+    replace(repo/"src/t-hmi-c64/SDCard.h","#include <SD_MMC.h>","#include <SD.h>")
     replace(repo/"src/sd.cpp","#include <SD_MMC.h>","#include <SD.h>")
     for path in [repo/"src/sd.cpp",repo/"src/t-hmi-c64/C64.cpp"]:
         body=path.read_text()
