@@ -10,6 +10,7 @@
 #include <strings.h>
 #include "midi/Smf.h"
 #include "midi/Synth.h"
+#include "midi/Seek25Core.h"
 #include "core/Playlist21Core.h"
 
 class MidiApp {
@@ -26,15 +27,17 @@ public:
         loadPlaylist(sdReady);
     }
     void exit() {
-        playing_=loaded_=hasNext_=endTail_=false;
+        playing_=loaded_=hasNext_=endTail_=seeking_=false;
         lastLyric_="";
         speakerOff();source_.close();synth_.allSoundOff();
     }
     void poll() {
+        if(seeking_){pollSeek();return;}
         if(!loaded_ || !playing_) return;
         const int64_t now=esp_timer_get_time();
         for(int i=0;i<96 && hasNext_ && due_<=now;++i) {
             const suite::smf::Event ev=next_;
+            songMicros_=nextSongMicros_;
             dispatch(ev);lastTick_=ev.tick;
             if(!reader_.next(next_)) {
                 if(reader_.failed()) {
@@ -124,6 +127,17 @@ public:
             }
             return;
         }
+        if(seeking_) {
+            if(letter(k,'f'))seekBy(1);
+            else if(letter(k,'j'))seekBy(-1);
+            else if(letter(k,'p')||k.enter)seekResume_=!seekResume_;
+            else if(letter(k,'b')||k.backspace){stop();page_=Page::Library;}
+            return;
+        }
+        if(loaded_ && (page_==Page::Playing || page_==Page::Karaoke)) {
+            if(letter(k,'f')){seekBy(1);return;}
+            if(letter(k,'j')){seekBy(-1);return;}
+        }
         if(page_==Page::Help) {
             if(k.backspace || letter(k,'b') || k.enter)page_=Page::Playing;
             return;
@@ -207,10 +221,10 @@ public:
         d.setTextColor(grey,panel);d.setCursor(4,121);
         switch(page_) {
             case Page::Library:d.print("Enter play A queue Q playlists");break;
-            case Page::Playing:d.print("Enter pause | M mix | K lyrics");break;
+            case Page::Playing:d.print("J/F seek -/+10s | M mix | K lyric");break;
             case Page::Mixer:d.print("Enter mute | S solo | B back");break;
             case Page::Help:d.print("B return to player");break;
-            case Page::Karaoke:d.print("Enter pause | B player | K back");break;
+            case Page::Karaoke:d.print("J/F seek | Enter pause | B back");break;
             case Page::Playlist:d.print("U/J move D del S save P order");break;
         }
         auto line=[&d,bg](int x,int y,const String& s,uint16_t color=0xffff) {
@@ -251,15 +265,23 @@ public:
         }
         if(page_==Page::Help) {
             line(5,27,"Enter/Space/P: Play or pause");
-            line(5,39,"B: Library  N: Next  Z: Restart");
-            line(5,51,"L: Loop  A: Auto-next  +/- speed");
+            line(5,39,"J/F: -/+10s seek  Z: Restart");
+            line(5,51,"B: Library  N: Next  L: Loop");
             line(5,63,"[ / ] volume  , / . transpose");
-            line(5,75,"M mixer  K karaoke  Q playlist");
+            line(5,75,"A auto-next M mix K lyric Q queue");
             line(5,87,"Mixer: Fn arrows / Enter mute");
             line(5,101,"Built-in speaker, no SoundFont",grey);
             return;
         }
         if(!loaded_) {line(5,37,status_,grey);return;}
+        if(seeking_){
+            line(5,38,String("Seeking to ")+
+                 static_cast<uint32_t>(seekScanner_.goal()/1000000ULL)+"s",accent);
+            line(5,53,String("Checked ")+seekScanner_.scanned()+" events",grey);
+            line(5,67,"Skipped notes stay silent",grey);
+            line(5,85,"P/Enter: resume mode | B cancel",grey);
+            return;
+        }
         if(page_==Page::Karaoke) {
             line(5,26,songs_[selected_],accent);
             line(5,40,String(playing_?"PLAYING":"PAUSED")+
@@ -295,7 +317,7 @@ public:
                   playing_?green:grey);
         const uint32_t bpm=tempo_?60000000u/tempo_:0;
         line(5,52,String("Tempo ")+bpm+" BPM  Speed "+speed_+"%");
-        line(5,65,String("PPQN ")+reader_.division()+
+        line(5,65,String("At ")+static_cast<uint32_t>(positionUs()/1000000ULL)+"s"+
                     "  Tick "+lastTick_+"  "+numerator_+"/"+(1u<<denominatorPower_));
         line(5,78,String("Voices ")+synth_.activeVoices()+
                     "/"+suite::midi::Synth::Voices+"  Vol "+volume_+
@@ -335,7 +357,9 @@ private:
     int songCount_=0,selected_=0,trackSelected_=0,solo_=-1;
     bool manualMute_[suite::smf::Reader::MaxTracks]={};
     bool loaded_=false,playing_=false,loop_=false,autoNext_=false,speakerOn_=false;
-    bool hasNext_=false,endTail_=false;
+    bool hasNext_=false,endTail_=false,seeking_=false,seekResume_=false;
+    suite::midi25::Scanner seekScanner_;
+    uint64_t songMicros_=0,nextSongMicros_=0;
     suite::playlist21::Queue queue_;
     bool queueActive_=false,queueReadOnly_=true,queueDirty_=false;
     int queueSelected_=0;
@@ -510,7 +534,7 @@ private:
     }
     void start(int index) {
         if(index<0||index>=songCount_)return;
-        selected_=index;loaded_=playing_=false;
+        selected_=index;loaded_=playing_=seeking_=false;
         char path[96];
         const int len=snprintf(path,sizeof(path),"%s/%s",Folder,songs_[index]);
         if(len<0||static_cast<size_t>(len)>=sizeof(path)) {
@@ -523,7 +547,8 @@ private:
         synth_.reset();memset(manualMute_,0,sizeof(manualMute_));
         solo_=-1;trackSelected_=0;
         tempo_=500000;numerator_=4;denominatorPower_=2;
-        lastTick_=0;lastNote_="--";lastProgram_=0;lastLyric_="";
+        lastTick_=0;songMicros_=nextSongMicros_=0;
+        lastNote_="--";lastProgram_=0;lastLyric_="";
         hasNext_=reader_.next(next_);
         if(reader_.failed()||!hasNext_) {
             source_.close();status_="Empty or invalid MIDI";return;
@@ -558,8 +583,89 @@ private:
         audioIndex_=0;playing_=true;status_="Playing";
     }
     void stop() {
-        playing_=loaded_=hasNext_=endTail_=false;
+        playing_=loaded_=hasNext_=endTail_=seeking_=false;
         speakerOff();source_.close();synth_.allSoundOff();
+    }
+    uint64_t positionUs()const {
+        if(seeking_)return seekScanner_.goal();
+        if(!hasNext_)return songMicros_;
+        const int64_t now=playing_?esp_timer_get_time():pauseAt_;
+        return suite::midi25::playbackPosition(songMicros_,nextSongMicros_,
+                                               due_,now,speed_);
+    }
+    void seekBy(int direction) {
+        if(!loaded_)return;
+        const uint64_t origin=seeking_?seekScanner_.goal():positionUs();
+        const uint64_t destination=suite::midi25::target(origin,direction);
+        if(destination==origin)return;
+        const bool resume=seeking_?seekResume_:playing_;
+        speakerOff();synth_.allSoundOff();
+        playing_=false;endTail_=false;seeking_=false;
+        if(!reader_.open(source_)) {
+            stop();status_="Seek: MIDI read failed";return;
+        }
+        hasNext_=reader_.next(next_);
+        if(reader_.failed()||!hasNext_){
+            stop();status_="Seek: invalid/empty MIDI";return;
+        }
+        synth_.reset();seekScanner_.begin(destination);
+        seekResume_=resume;seeking_=true;
+        lastTick_=0;tempo_=500000;numerator_=4;denominatorPower_=2;
+        lastProgram_=0;lastNote_="--";lastLyric_="";
+        songMicros_=nextSongMicros_=0;
+        status_="Seeking (skipped notes silent)";
+    }
+    void pollSeek(){
+        // Cooperative scan: bounded event count per UI frame, no audio.
+        for(unsigned i=0;i<suite::midi25::EventsPerPoll;++i){
+            uint64_t at=0;
+            const auto result=seekScanner_.inspect(next_,reader_.division(),at);
+            if(result==suite::midi25::Scanner::Result::Invalid){
+                stop();status_="Seek limit or damaged MIDI";return;
+            }
+            if(result==suite::midi25::Scanner::Result::Ready){
+                const int64_t delay=suite::midi25::delayAtSpeed(
+                    at-seekScanner_.goal(),static_cast<unsigned>(speed_));
+                if(delay<0){stop();status_="Seek timing out of range";return;}
+                const int64_t now=esp_timer_get_time();
+                lastTick_=seekScanner_.tick();
+                songMicros_=seekScanner_.position();nextSongMicros_=at;
+                tempo_=seekScanner_.tempo();due_=now+delay;
+                pauseAt_=now;seeking_=false;endTail_=false;
+                applyMute();
+                playing_=seekResume_;
+                if(playing_){
+                    speakerOn_=M5Cardputer.Speaker.begin();
+                    if(speakerOn_)M5Cardputer.Speaker.setVolume(volume_);
+                }
+                audioIndex_=0;
+                status_=playing_?"Seek complete: playing":"Seek complete: paused";
+                return;
+            }
+            const suite::smf::Event ev=next_;
+            if(ev.kind==suite::smf::Kind::Tempo)tempo_=ev.tempo;
+            else if(ev.kind==suite::smf::Kind::TimeSignature){
+                numerator_=ev.numerator;
+                denominatorPower_=ev.denominatorPower>6?6:ev.denominatorPower;
+            }else if(ev.kind==suite::smf::Kind::Lyric)lastLyric_=String(ev.text);
+            else if(ev.kind==suite::smf::Kind::Program)lastProgram_=ev.a;
+            // Restore synth state without replaying skipped note attacks.
+            if(ev.kind==suite::smf::Kind::Program ||
+               ev.kind==suite::smf::Kind::Control ||
+               ev.kind==suite::smf::Kind::PitchBend)
+                synth_.event(ev);
+            hasNext_=reader_.next(next_);
+            if(reader_.failed()){
+                stop();status_="Seek: corrupted MIDI stream";return;
+            }
+            if(!hasNext_){
+                songMicros_=seekScanner_.position();
+                nextSongMicros_=songMicros_;lastTick_=seekScanner_.tick();
+                seeking_=playing_=endTail_=false;
+                pauseAt_=esp_timer_get_time();
+                status_="Reached end of MIDI song";return;
+            }
+        }
     }
     void changeSpeed(int newSpeed) {
         if(newSpeed<50 || newSpeed>200 || newSpeed==speed_)return;
@@ -577,6 +683,8 @@ private:
         synth_.allSoundOff();
     }
     void schedule(const suite::smf::Event& ev) {
+        nextSongMicros_=suite::midi25::eventTime(songMicros_,lastTick_,
+                                      ev.tick,tempo_,reader_.division());
         const uint32_t ticks=ev.tick-lastTick_;
         const uint64_t micro=static_cast<uint64_t>(ticks)*tempo_*100u/
                              (static_cast<uint64_t>(reader_.division())*speed_);
