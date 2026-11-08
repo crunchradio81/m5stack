@@ -148,13 +148,10 @@ public:
    if(v<0)return false;
    hash=hash*16+static_cast<unsigned>(v);
   }
+  // Use unmodified input: the per-line parsing buffer has already
+  // replaced every LF with NUL, so hashing that buffer would be wrong.
   const size_t prefix=static_cast<size_t>(lines[5]-copy);
-  // Restore the LF immediately before HASH to reconstruct hashed bytes.
-  const char saved=copy[prefix-1];
-  copy[prefix-1]='\n';
-  const bool validHash=checksum(copy,prefix)==hash;
-  copy[prefix-1]=saved;
-  if(!validHash)return false;
+  if(checksum(raw,prefix)!=hash)return false;
   for(unsigned i=0;i<Profiles;++i){
    char*line=lines[2+i];
    if(line[0]!='P'||line[1]!=static_cast<char>('0'+i)||line[2]!='=')
