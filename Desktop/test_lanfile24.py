@@ -66,7 +66,7 @@ class DesktopProtocolTests(unittest.TestCase):
             header.replace(b"TEST.BIN", b"BEST.BIN"),
             header.replace(b"TEST.BIN", b"../S.BIN"),
             header.replace(b"TEST.BIN", b"TEST.BIN\r"),
-            header.replace(b"40", b"41", 1),
+            header.replace(f"|{len(payload)}|".encode(), f"|{len(payload)+1}|".encode()),
         ):
             with self.assertRaises(lan.TransferError):
                 lan.parse_header(tampered, nonce, SECRET)
