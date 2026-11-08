@@ -40,7 +40,7 @@ int main() {
     for(const char* id:{"METRONOME","PIANO","CHANNELS","BLE",
                         "ARCADE","OFFICE","INSPECT","MUSICLAB",
                         "DEVTOOLS","SYSTEM",
-                        "IRTOOLS","WIRELESS","AUDIOLAB","FILETOOLS","NETTOOLS","MIDITOOLS","ARCADE2","POCKET11"})
+                        "IRTOOLS","WIRELESS","AUDIOLAB","FILETOOLS","NETTOOLS","MIDITOOLS","ARCADE2","POCKET11","ARCADE3"})
         assert(authorizedId(id));
     assert(!authorizedId("CAMERA"));
     assert(safeFilename("BLE.BIN") && !safeFilename("BLE.bin"));
