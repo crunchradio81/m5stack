@@ -75,7 +75,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 41. To-Do Manager — **P5 source; hardware pending**
 42. Calendar — **P5 source; hardware pending** (needs clock sync/manual date)
 43. Contacts — **P5 source; hardware pending**
-44. Scientific Calculator — **Planned**
+44. Scientific Calculator — **P6 source; hardware pending**
 45. Programmer Calculator — **Built source, hardware pending**
 46. Spreadsheet Mini — **Planned**
 47. Expenses / Budget Tracker — **P5 source; hardware pending**
@@ -88,7 +88,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P5 programming and diagnostics (12)
 
-54. BASIC Studio — **Planned**
+54. BASIC Studio — **P6 partial: BASIC expression REPL, full Studio planned**
 55. Bounded Lua Interpreter — **Planned**, only if memory permits
 56. Syntax-highlighted Code Editor — **Planned**
 57. Hex Viewer / Editor — **P5 source; hardware pending**, backup-required writes
@@ -98,8 +98,8 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 61. Logic and Bit Calculator — **Partially in Programmer Calculator (source)**
 62. JSON Inspector — **P5 source; hardware pending**
 63. QR Code Generator — **Planned** (display-only)
-64. CHIP-8 Interpreter — **Planned**
-65. SD Benchmark — **Planned**
+64. CHIP-8 Interpreter — **P6 source; physical keyboard/ROM test pending**
+65. SD Benchmark — **P6 source: read-only benchmark; hardware pending**
 
 ## P6 infrared tools (5)
 
@@ -133,10 +133,10 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 87. File Search / Content Search — **P5 source; hardware pending**
 88. Storage Analyzer — **P5 source; hardware pending**
 89. Backup / Restore Manager — **Planned**
-90. Battery Monitor — **Planned**
-91. Firmware Information / Recovery Guide — **Planned**
+90. Battery Monitor — **P6 source: voltage and estimated level; hardware pending**
+91. Firmware Information / Recovery Guide — **P6 partial: firmware info only**
 92. Theme Editor — **Planned**
-93. System Diagnostics — **Planned**
+93. System Diagnostics — **P6 source: heap/CPU/partitions; hardware pending**
 94. Config / Settings Profiles — **Planned**
 
 ## Development and acceptance rules
@@ -165,3 +165,17 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 These are source implementations, **not** physical hardware certification.
 Remaining numbered catalog entries are still planned. GitHub epic #3
 tracks the full 94-program goal; the P5 branch does not finish all 94.
+
+## P6 developer/system collection inventory (11 more programs in two images)
+
+- `DEVTOOLS`: BASIC Mini REPL, Scientific Calculator, ASCII/Hex Codec,
+  CHIP-8 Interpreter loading owner-provided ROM files from SD.
+- `SYSTEM`: Battery Monitor, Heap/CPU, Firmware Info, SD Card Info,
+  read-only SD benchmark, streamed SHA-256 digest, Uptime Clock.
+- Two source-built SD firmware packages extend the prior eight to **ten**.
+  This is ten installable packages, not eleven new flash partitions.
+- BASIC is a bounded expression REPL, not full BASIC Studio; battery
+  current/charging state is not claimed; uptime is not a wall clock.
+- Full suite's 94 numbered catalog items remain **in progress**.
+
+See docs/P6_DEV_SYSTEM.md and docs/P6_ACCEPTANCE.md.
