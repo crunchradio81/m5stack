@@ -10,18 +10,20 @@
 #include <strings.h>
 #include "midi/Smf.h"
 #include "midi/Synth.h"
+#include "core/Playlist21Core.h"
 
 class MidiApp {
 public:
     static constexpr const char* Folder="/SUITE/MIDI";
     static constexpr int MaxSongs=48;
-    enum class Page:uint8_t {Library,Playing,Mixer,Help,Karaoke};
+    enum class Page:uint8_t {Library,Playing,Mixer,Help,Karaoke,Playlist};
 
     void enter(bool sdReady) {
         exit();
         volume_=suite::skin16::current().active().volume;
         page_=Page::Library;
         refresh(sdReady);
+        loadPlaylist(sdReady);
     }
     void exit() {
         playing_=loaded_=hasNext_=endTail_=false;
@@ -45,7 +47,7 @@ public:
         }
         if(endTail_ && now>=tailDue_) {
             if(loop_) restart();
-            else if(autoNext_ && songCount_>1) start((selected_+1)%songCount_);
+            else if(autoNext_ && nextIndex()>=0) start(nextIndex());
             else {
                 playing_=false;endTail_=false;status_="Finished";
                 speakerOff();synth_.allSoundOff();
@@ -69,7 +71,57 @@ public:
             if(k.up || letter(k,'w')) {if(selected_>0)--selected_;}
             if(k.down || letter(k,'s')) {if(selected_+1<songCount_)++selected_;}
             if(letter(k,'r'))refresh(sdReady);
+            if(letter(k,'q')){page_=Page::Playlist;return;}
+            if(letter(k,'a')&&songCount_>0){
+                if(queueReadOnly_){status_="Playlist protected / read-only";return;}
+                if(queue_.add(songs_[selected_])) {
+                    queueDirty_=true;
+                    queueSelected_=static_cast<int>(queue_.count())-1;
+                    status_="Added to queue: Q view, S save";
+                }else status_="Already queued, invalid name or full";
+                return;
+            }
             if(k.enter && songCount_>0)start(selected_);
+            return;
+        }
+        if(page_==Page::Playlist) {
+            if(letter(k,'b')||k.backspace) {
+                page_=loaded_?Page::Playing:Page::Library;return;
+            }
+            if(k.up && queueSelected_>0)--queueSelected_;
+            if(k.down && queueSelected_+1<static_cast<int>(queue_.count()))++queueSelected_;
+            if(letter(k,'s')){savePlaylist();return;}
+            if(letter(k,'r')){
+                if(queueDirty_)status_="Unsaved edits: S save before reload";
+                else loadPlaylist(sdReady);
+                return;
+            }
+            if(letter(k,'p')){
+                queueActive_=!queueActive_;
+                status_=queueActive_?"Playlist order ON":"Library order ON";
+                return;
+            }
+            if(letter(k,'u')&&queueSelected_>0&&!queueReadOnly_ &&
+               queue_.move(queueSelected_,-1)){
+                --queueSelected_;queueDirty_=true;return;
+            }
+            if(letter(k,'j')&&queueSelected_+1<static_cast<int>(queue_.count()) &&
+               !queueReadOnly_ && queue_.move(queueSelected_,1)){
+                ++queueSelected_;queueDirty_=true;return;
+            }
+            if(letter(k,'d')&&!queueReadOnly_&&queue_.remove(queueSelected_)){
+                if(queueSelected_>=static_cast<int>(queue_.count()) && queueSelected_>0)
+                    --queueSelected_;
+                queueDirty_=true;
+                if(!queue_.count())queueActive_=false;
+                return;
+            }
+            if(k.enter && queue_.count()){
+                const int song=findSong(queue_.at(queueSelected_));
+                if(song>=0){queueActive_=true;start(song);}
+                else status_="Song absent: add file to /SUITE/MIDI";
+                return;
+            }
             return;
         }
         if(page_==Page::Help) {
@@ -102,6 +154,7 @@ public:
             exit();page_=Page::Library;return;
         }
         if(letter(k,'m')) {page_=Page::Mixer;return;}
+        if(letter(k,'q')) {page_=Page::Playlist;return;}
         if(letter(k,'k')) {page_=Page::Karaoke;return;}
         if(letter(k,'h') || symbol(k,'?')) {page_=Page::Help;return;}
         if(letter(k,'l')) {loop_=!loop_;return;}
@@ -110,10 +163,8 @@ public:
         if(symbol(k,'.')) {changeTranspose(1);return;}
         if(letter(k,'z')) {restart();return;}
         if(letter(k,'n')) {
-            if(songCount_>1) {
-                selected_=(selected_+1)%songCount_;
-                start(selected_);
-            }
+            const int next=nextIndex();
+            if(next>=0)start(next);
             return;
         }
         if(symbol(k,'+') || symbol(k,'=')) {
@@ -149,20 +200,37 @@ public:
         d.print(page_==Page::Library?"MIDI LIBRARY":
                 page_==Page::Playing?"MIDI STUDIO":
                 page_==Page::Mixer?"MIDI MIXER":
-                page_==Page::Karaoke?"MIDI KARAOKE":"MIDI CONTROLS");
+                page_==Page::Karaoke?"MIDI KARAOKE":
+                page_==Page::Playlist?"MIDI PLAYLIST":"MIDI CONTROLS");
         d.setTextColor(accent,panel);d.setCursor(212,7);d.print("P2");
         d.fillRect(0,116,240,19,panel);
         d.setTextColor(grey,panel);d.setCursor(4,121);
         switch(page_) {
-            case Page::Library:d.print("Enter play | R rescan | home");break;
+            case Page::Library:d.print("Enter play A queue Q playlists");break;
             case Page::Playing:d.print("Enter pause | M mix | K lyrics");break;
             case Page::Mixer:d.print("Enter mute | S solo | B back");break;
             case Page::Help:d.print("B return to player");break;
             case Page::Karaoke:d.print("Enter pause | B player | K back");break;
+            case Page::Playlist:d.print("U/J move D del S save P order");break;
         }
         auto line=[&d,bg](int x,int y,const String& s,uint16_t color=0xffff) {
             d.setTextColor(color,bg);d.setCursor(x,y);d.print(s.substring(0,38));
         };
+        if(page_==Page::Playlist) {
+            line(5,25,String(queue_.count())+" queued / "+
+                 (queueActive_?"play order ON":"library order")+
+                 (queueDirty_?" *":""),accent);
+            if(queueReadOnly_)line(5,37,"READ-ONLY: recover SD file",grey);
+            const int top=queueSelected_>=6?queueSelected_-5:0;
+            for(int i=top;i<static_cast<int>(queue_.count())&&i<top+6;++i){
+                const int y=43+(i-top)*11;
+                if(i==queueSelected_)d.fillRect(2,y-1,235,11,selected);
+                d.setTextColor(white,i==queueSelected_?selected:bg);
+                d.setCursor(5,y);
+                d.print(String(i+1)+". "+String(queue_.at(i)).substring(0,28));
+            }
+            line(5,109,status_,grey);return;
+        }
         if(page_==Page::Library) {
             line(5,26,String(songCount_)+" MIDI files in /SUITE/MIDI",accent);
             if(songCount_==0) {
@@ -176,7 +244,8 @@ public:
                     d.setTextColor(white,i==selected_?selected:bg);
                     d.setCursor(5,y);d.print(String(i+1)+". "+songs_[i]);
                 }
-                if(status_!="Select a song")line(5,105,status_,grey);
+                line(5,105,queue_.count()?String("Queue ")+queue_.count()+
+                     (queueDirty_?" unsaved":" saved"):status_,grey);
             }
             return;
         }
@@ -185,7 +254,7 @@ public:
             line(5,39,"B: Library  N: Next  Z: Restart");
             line(5,51,"L: Loop  A: Auto-next  +/- speed");
             line(5,63,"[ / ] volume  , / . transpose");
-            line(5,75,"M: mixer  K: synced karaoke");
+            line(5,75,"M mixer  K karaoke  Q playlist");
             line(5,87,"Mixer: Fn arrows / Enter mute");
             line(5,101,"Built-in speaker, no SoundFont",grey);
             return;
@@ -230,7 +299,8 @@ public:
                     "  Tick "+lastTick_+"  "+numerator_+"/"+(1u<<denominatorPower_));
         line(5,78,String("Voices ")+synth_.activeVoices()+
                     "/"+suite::midi::Synth::Voices+"  Vol "+volume_+
-                    "  Loop "+(loop_?"Y":"N")+"  Next "+(autoNext_?"Y":"N"));
+                    "  Loop "+(loop_?"Y":"N")+"  Next "+(autoNext_?"Y":"N")+
+                    (queueActive_?" Q":""));
         line(5,91,String("Note ")+lastNote_+"  Prog "+lastProgram_+
                     "  Trans "+transpose_);
         // Live chromatic note activity: 12 pitch-class columns.
@@ -266,6 +336,9 @@ private:
     bool manualMute_[suite::smf::Reader::MaxTracks]={};
     bool loaded_=false,playing_=false,loop_=false,autoNext_=false,speakerOn_=false;
     bool hasNext_=false,endTail_=false;
+    suite::playlist21::Queue queue_;
+    bool queueActive_=false,queueReadOnly_=true,queueDirty_=false;
+    int queueSelected_=0;
     Page page_=Page::Library;
     int speed_=100,transpose_=0;
     uint8_t volume_=64;
@@ -330,6 +403,107 @@ private:
                 }
         status_=songCount_?"Select a song":"No .MID/.KAR files found";
     }
+
+    static constexpr const char* QueuePath="/SUITE/MIDI/PLAYLIST.PLS";
+    int findSong(const char*name)const{
+        if(!name)return -1;
+        for(int i=0;i<songCount_;++i)
+            if(suite::playlist21::same(songs_[i],name))return i;
+        return -1;
+    }
+    int nextIndex()const{
+        if(queueActive_){
+            const unsigned n=queue_.count();
+            if(!n)return -1;
+            const int current=selected_<songCount_?
+                queue_.indexOf(songs_[selected_]):-1;
+            const unsigned first=current<0?0:(static_cast<unsigned>(current)+1)%n;
+            for(unsigned i=0;i<n;++i){
+                const int index=findSong(queue_.at((first+i)%n));
+                if(index>=0)return index;
+            }
+            return -1;
+        }
+        return songCount_>1?(selected_+1)%songCount_:-1;
+    }
+    bool verifyPlaylistFile(const char*path,const char*expected,size_t expectedSize) {
+        File f=SD.open(path,FILE_READ);
+        if(!f || f.isDirectory() || f.size()!=expectedSize){
+            if(f)f.close();return false;
+        }
+        char bytes[suite::playlist21::MaxBytes+1]={};
+        const bool ok=f.readBytes(bytes,expectedSize)==expectedSize &&
+                      memcmp(bytes,expected,expectedSize)==0;
+        f.close();return ok;
+    }
+    void loadPlaylist(bool sdReady) {
+        queue_.clear();queueSelected_=0;queueDirty_=false;
+        queueActive_=false;queueReadOnly_=true;
+        if(!sdReady){status_="Insert FAT32 SD for playlists";return;}
+        if(SD.exists("/SUITE/MIDI/PLAYLIST.NEW")){
+            status_="Interrupted playlist .NEW; recover manually";return;
+        }
+        if(!SD.exists(QueuePath)){
+            if(SD.exists("/SUITE/MIDI/PLAYLIST.BAK"))
+                status_="Backup-only playlist: recover manually";
+            else {queueReadOnly_=false;status_="Playlist empty. A adds songs.";}
+            return;
+        }
+        File file=SD.open(QueuePath,FILE_READ);
+        if(!file||file.isDirectory()||file.size()>suite::playlist21::MaxBytes){
+            if(file)file.close();status_="Playlist invalid: protected";return;
+        }
+        char data[suite::playlist21::MaxBytes+1]={};
+        const size_t len=file.size();
+        const bool ok=file.readBytes(data,len)==len;file.close();
+        if(!ok || !queue_.parse(data,len)){
+            status_="Playlist damaged: protected";return;
+        }
+        queueReadOnly_=false;
+        status_=String("Playlist loaded: ")+queue_.count()+" songs";
+    }
+    bool savePlaylist(){
+        if(queueReadOnly_){status_="Playlist protected; no overwrite";return false;}
+        if(!queueDirty_){status_="Playlist already saved";return true;}
+        char data[suite::playlist21::MaxBytes+1]={};
+        const size_t len=queue_.encode(data,sizeof(data));
+        if(!len){status_="Playlist encode failed";return false;}
+        const char*temp="/SUITE/MIDI/PLAYLIST.NEW";
+        const char*backup="/SUITE/MIDI/PLAYLIST.BAK";
+        if(SD.exists(temp)){status_="Protected interrupted .NEW";return false;}
+        File output=SD.open(temp,FILE_WRITE);
+        if(!output){status_="Cannot create playlist .NEW";return false;}
+        const bool ok=output.write(reinterpret_cast<const uint8_t*>(data),len)==len;
+        output.flush();output.close();
+        if(!ok||!verifyPlaylistFile(temp,data,len)){
+            status_="Playlist temp verify failed";return false;
+        }
+        const bool existed=SD.exists(QueuePath);
+        if(!existed&&SD.exists(backup)){
+            status_="Backup-only state protected";return false;
+        }
+        if(existed){
+            // Parsed old playlist and verified new temp. Rotate .BAK now.
+            if(SD.exists(backup)&&!SD.remove(backup)){
+                status_="Cannot rotate playlist backup";return false;
+            }
+            if(!SD.rename(QueuePath,backup)){
+                status_="Cannot back up existing playlist";return false;
+            }
+        }
+        if(!SD.rename(temp,QueuePath)){
+            if(existed)SD.rename(backup,QueuePath);
+            status_="Playlist commit failed";return false;
+        }
+        if(!verifyPlaylistFile(QueuePath,data,len)){
+            status_="Playlist final verify failed: keep backup";
+            queueReadOnly_=true;return false;
+        }
+        queueDirty_=false;
+        status_=String("Saved ")+queue_.count()+" songs; prior .BAK";
+        return true;
+    }
+
     void speakerOff() {
         if(speakerOn_)M5Cardputer.Speaker.stop(0);
         speakerOn_=false;
