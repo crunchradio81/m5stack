@@ -8,6 +8,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import platform
+import plistlib
+import subprocess
 from pathlib import Path
 import re
 import stat
@@ -30,6 +33,78 @@ HASH_CHUNK = 65536
 
 class PackError(Exception):
     pass
+
+def validate_macos_volume(info: dict, root: Path) -> None:
+    """Fail-closed check of diskutil info -plist for a FAT32 external volume."""
+    mount = info.get("MountPoint")
+    if mount != str(root):
+        raise PackError("SD selected path is not the exact mounted volume root")
+    fs = " ".join(str(info.get(k, "")) for k in
+                  ("FilesystemType", "FileSystemPersonality", "Type", "FilesystemName")).lower()
+    if not ("fat32" in fs or "msdos" in fs or "ms-dos fat" in fs):
+        raise PackError("Cardputer requires a FAT32/MS-DOS removable volume")
+    if info.get("Internal") is not False and not info.get("RemovableMedia") and not info.get("Ejectable"):
+        raise PackError("Selected Mac volume is not verified external/removable")
+    if info.get("ReadOnlyVolume") is True or info.get("Writable") is False:
+        raise PackError("Selected SD volume is read-only")
+
+
+def validate_linux_volume(info: dict, root: Path) -> None:
+    """Trust only a distinct mounted vfat block device, never a normal folder."""
+    filesystems = info.get("filesystems", [])
+    if len(filesystems) != 1:
+        raise PackError("Cannot identify exactly one mounted Linux SD filesystem")
+    volume = filesystems[0]
+    if volume.get("target") != str(root) or volume.get("fstype") != "vfat":
+        raise PackError("Linux SD root must be its exact FAT32/vfat mount point")
+    source = volume.get("source", "")
+    if not isinstance(source, str) or not source.startswith("/dev/"):
+        raise PackError("Linux SD must be a real mounted block device, not a network/loop filesystem")
+    if "ro" in str(volume.get("options", "")).split(","):
+        raise PackError("Selected SD card is mounted read-only")
+
+
+def require_card_media(root: Path) -> int:
+    """Guard every *write*, not just the preflight. Return device identity."""
+    _no_symlink_dir(root, must_exist=True)
+    real = root.resolve(strict=True)
+    if not os.path.ismount(real):
+        raise PackError("SD installer refuses ordinary folders: select an exact mounted FAT32 volume")
+    system = platform.system()
+    if system == "Darwin":
+        if real.parent != Path("/Volumes"):
+            raise PackError("On Mac choose /Volumes/<your-card>, not a system directory")
+        try:
+            proc = subprocess.run(
+                ["/usr/sbin/diskutil", "info", "-plist", str(real)],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                timeout=8, check=True)
+            info = plistlib.loads(proc.stdout)
+        except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+            raise PackError("Cannot verify Mac FAT32 removable media; copy blocked") from exc
+        validate_macos_volume(info, real)
+    elif system == "Linux":
+        try:
+            proc = subprocess.run(
+                ["findmnt", "--json", "--target", str(real),
+                 "--output", "TARGET,SOURCE,FSTYPE,OPTIONS"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                timeout=8, check=True)
+            import json
+            info = json.loads(proc.stdout)
+        except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
+            raise PackError("Cannot verify Linux FAT32 block-device mount; copy blocked") from exc
+        validate_linux_volume(info, real)
+    else:
+        raise PackError("SD writing unsupported on this operating system")
+    return real.stat().st_dev
+
+
+def check_card_still_mounted(root: Path, identity: int) -> None:
+    """Prevent a removed card from redirecting writes into the host folder."""
+    if not os.path.ismount(root) or root.stat().st_dev != identity:
+        raise PackError("SD card mount changed or disappeared. Copy stopped; review partial files")
+
 
 
 def _no_symlink_dir(path: Path, *, must_exist: bool) -> bool:
@@ -185,7 +260,10 @@ def build_plan(archive: Path, root: Path) -> tuple[dict[str, tuple[int, str]], l
     for app in sorted(EXPECTED_IDS):
         files.extend([f"{app}.BIN", f"{app}.APP"])
     if apps.exists():
-        names = {p.name.lower(): p for p in apps.iterdir()}
+        entries = list(apps.iterdir())
+        names = {p.name.lower(): p for p in entries}
+        if len(names) != len(entries):
+            raise PackError("Case-colliding files already exist on SD; no changes made")
         # Reject any symlink (even if the name isn't in this archive).
         if any(p.is_symlink() for p in names.values()):
             raise PackError("SUITE/APPS contains a symlink; refusing SD writes")
@@ -216,8 +294,11 @@ def build_plan(archive: Path, root: Path) -> tuple[dict[str, tuple[int, str]], l
 
 
 def install(archive: Path, root: Path) -> tuple[int, int]:
+    # A writable card must be independently verified by OS filesystem metadata.
+    # Failing closed also prevents a selected ordinary folder from receiving BINs.
+    volume_identity = require_card_media(root)
     valid, new, same = build_plan(archive, root)
-    # Re-check tree after validation; no write until full package verified.
+    check_card_still_mounted(root, volume_identity)
     apps = target_tree(root, create=True)
     copied = 0
     # Always publish binaries before their manifest. On interruption a
@@ -226,6 +307,7 @@ def install(archive: Path, root: Path) -> tuple[int, int]:
     try:
         with zipfile.ZipFile(archive) as zf:
             for filename in ordered:
+                check_card_still_mounted(root, volume_identity)
                 target = apps / filename
                 flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
                 if hasattr(os, "O_NOFOLLOW"):
@@ -257,9 +339,50 @@ def install(archive: Path, root: Path) -> tuple[int, int]:
     return copied, len(same)
 
 
+def audit_card(archive: Path, root: Path) -> tuple[int, int, int, list[str]]:
+    """Read-only full SD audit. Does not delete, replace or create anything."""
+    inspect_pack(archive)
+    apps = target_tree(root)
+    if not apps.exists():
+        return 0, 60, 0, ["SUITE/APPS directory is missing"]
+    entries = list(apps.iterdir())
+    mapping = {p.name.lower(): p for p in entries}
+    if len(mapping) != len(entries):
+        raise PackError("Case-colliding SD names; audit cannot unambiguously map entries")
+    if any(p.is_symlink() for p in entries):
+        raise PackError("SD application directory has a symlink; audit refused")
+    good = missing = changed = 0
+    details = []
+    with zipfile.ZipFile(archive) as z:
+        for app in sorted(EXPECTED_IDS):
+            for ext in ("BIN", "APP"):
+                name = f"{app}.{ext}"
+                path = mapping.get(name.lower())
+                if path is None:
+                    missing += 1
+                    details.append(f"MISSING:{name}")
+                    continue
+                if path.name != name or not path.is_file():
+                    changed += 1
+                    details.append(f"CHANGED:{name}")
+                    continue
+                expected = z.getinfo(f"SUITE/APPS/{name}")
+                expected_sha, _, _ = _scan_info(
+                    z, expected, MAX_BIN if ext == "BIN" else MAX_MANIFEST)
+                digest, actual, first = _sha_file(path)
+                if actual != expected.file_size or digest != expected_sha or (
+                    ext == "BIN" and first != 0xE9
+                ):
+                    changed += 1
+                    details.append(f"CHANGED:{name}")
+                else:
+                    good += 1
+    return good, missing, changed, details
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="Owner-selected 30-app Cardputer K132 SD installer (never flashes)")
-    p.add_argument("mode", choices=("plan", "install"))
+    p.add_argument("mode", choices=("plan", "install", "audit"))
     p.add_argument("--archive", type=Path, required=True)
     p.add_argument("--target", type=Path, required=True, help="Existing SD volume root, NOT SUITE/APPS")
     p.add_argument("--confirm-copy", action="store_true", help="Explicitly permit create-only SD file copying")
@@ -269,11 +392,22 @@ def main(argv=None) -> int:
         print(f"PLAN:APPS={len(validated)}|NEW={len(new)}|IDENTICAL={len(same)}", flush=True)
         if args.mode == "plan":
             print("READY: validated package and selected target; no changes made", flush=True)
+        elif args.mode == "audit":
+            good, missing, changed, details = audit_card(args.archive, args.target)
+            print(f"AUDIT:GOOD={good}|MISSING={missing}|CHANGED={changed}", flush=True)
+            for line in details[:20]:
+                print(line, flush=True)
+            if missing or changed:
+                raise PackError("SD verification incomplete; manually review missing/changed files")
         elif not args.confirm_copy:
             raise PackError("Copy requires --confirm-copy; no SD files were written")
         else:
             count, unchanged = install(args.archive, args.target)
+            good, missing, changed, details = audit_card(args.archive, args.target)
+            if good != 60 or missing or changed:
+                raise PackError(f"Post-copy audit failed: good={good} missing={missing} changed={changed}")
             print(f"INSTALLED:NEW={count}|IDENTICAL={unchanged}", flush=True)
+            print("AUDIT:GOOD=60|MISSING=0|CHANGED=0", flush=True)
         return 0
     except (PackError, OSError) as exc:
         print(f"SDPACK27 ERROR: {exc}", file=sys.stderr, flush=True)
