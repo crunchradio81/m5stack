@@ -57,7 +57,10 @@ inline bool reload(){
  adopt(incoming,true);return true;
 }
 inline const Palette&colors(){
- if(!state().initialized)reload();
+ if(!state().initialized){
+  reload();
+  if(state().validFile)applyDisplay();
+ }
  return state().colors;
 }
 inline bool save(const Settings&candidate){

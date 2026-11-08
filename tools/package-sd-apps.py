@@ -37,6 +37,7 @@ APPS = (
     ("sd_music2", "MUSIC2", "Music Production Studio"),
     ("sd_dev2", "DEV2", "Developer Studio II"),
     ("sd_websecure", "WEBSECURE", "Verified HTTPS Web Tools"),
+    ("sd_themes", "THEMES", "Theme Editor and Settings Profiles"),
 )
 MAX_APP_BYTES = 0x300000
 
