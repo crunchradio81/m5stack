@@ -21,8 +21,9 @@ inline bool parse(const char*response,size_t length,Device&device){
  if(!response||length<28||length>MaxResponse||memchr(response,0,length))return false;
  const char*end=response+length;
  const char*newline=static_cast<const char*>(memchr(response,'\n',length));
- if(!newline||!starts(response,static_cast<size_t>(newline-response),"HTTP/1.1 200")&&
-    !starts(response,static_cast<size_t>(newline-response),"HTTP/1.0 200"))return false;
+ if(!newline ||
+    (!starts(response,static_cast<size_t>(newline-response),"HTTP/1.1 200") &&
+     !starts(response,static_cast<size_t>(newline-response),"HTTP/1.0 200")))return false;
  Device next;
  bool terminated=false;
  const char*line=newline+1;
