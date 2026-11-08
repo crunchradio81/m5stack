@@ -159,3 +159,40 @@ Do not claim releases pass until the board-specific evidence exists.
 - Factory firmware updates required; original app/OTA partition table
   remains unchanged. Host regressions and full build must pass; physical
   K132 USB recovery and OTA return tests are outstanding.
+
+## P12 — Arcade Classics III
+
+- Local two-player chess rules, bounded Klondike, Sudoku and a 3-floor
+  dungeon in one ARCADE3 SD firmware image; source CI success.
+- Physical original K132 gameplay and OTA recovery still pending.
+
+## P13 — Music Production Studio
+
+- Four-track 16-step sequencer, synthesized drums, arpeggiator, chords,
+  Morse quiz and approximate waveform instrument presets.
+- Persistent bounded .SEQ format with backups; no SoundFont/sample bank.
+- Source CI success; hardware playback timing and persistence pending.
+
+## P14 — Developer Studio II
+
+- Numbered BASIC subset, simple code/hex editors, USB CDC console,
+  guarded SD text search. Not Lua or a general shell.
+- Host tests and 21-target SD firmware matrix; original board QA pending.
+
+## P15 — CA-verified HTTPS tools
+
+- New WEBSECURE SD collection uses WiFiClientSecure with explicit root
+  PEM CA and NTP; never disables certificate verification.
+- Static HTML prefix, first RSS title, short Wikipedia ASCII extract,
+  manual coordinate weather and HTTPS API GET. Not a full browser.
+- Physical original K132 TLS/OTA verification pending.
+
+## Remaining completion gates
+
+- Full original 94-app checklist **not closed**; major unimplemented
+  items include secure vault, Lua, BLE GATT, Internet radio, secure MQTT,
+  LAN transfer, Theme/Settings Profiles, advanced sampled GM sounds,
+  complete playlist editor, game saves and unrestricted SD management.
+- All software features need real stock K132 runtime and recovery tests.
+  Signed firmware, full authentication and secure credential storage
+  require security design/review rather than unsupported claims.

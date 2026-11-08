@@ -9,7 +9,7 @@ Statuses: **Built source** means source code exists, not necessarily merged or h
 
 ## P4 executable SD library (built source, hardware acceptance pending)
 
-A persistent factory menu launches eighteen separately compiled SD firmware
+A persistent factory menu launches twenty-two separately compiled SD firmware
 images into a replaceable OTA slot, using owner-controlled manifests and
 SHA256 integrity checks. Only suite-managed app IDs are allowed; this is
 not authenticated firmware or guaranteed hardware recovery. See docs/SD_LAUNCHER.md.
@@ -26,20 +26,20 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
    control. Full GM sample-based accuracy is not currently supported.
 2. MIDI Lyric/Karaoke Viewer — **P9 source: bounded FF 05/FF 01 lyrics synchronized during playback, hardware pending:** text and synchronized lyric events
    in MIDI/KAR where present.
-3. Advanced Instrument Library — **Planned:** storage-efficient instrument
+3. Advanced Instrument Library — **P13 partial: selectable waveform program families; sample patches planned:** storage-efficient instrument
    patches, not PSRAM-only SF2 loading.
 4. MIDI Track Analyzer — **P9 source: bounded note/channel/tempo statistics, hardware pending:** notes, tempo map, channel programs,
    event browser and instrument activity.
 5. MIDI Playlist Manager — **P9 partial: saved favorites only; ordered playlists/resume planned:** playlists/favorites, sorting, resume.
 6. Voice Recorder — **P7 source; hardware pending:** microphone audio to SD; no simultaneous capture/play.
 7. WAV Player — **P7 source; 8/16k mono PCM16 only, hardware pending:** mono streaming.
-8. Music Tracker — **Planned:** patterns and sample-lite instruments.
+8. Music Tracker — **P13 partial: 4x16 step sequencer, no song arrangement:** patterns and sample-lite instruments.
 9. Piano — **Built source as SD Music Keyboard:** real hardware pending.
-10. Drum Machine — **Planned:** pattern sequencing.
+10. Drum Machine — **P13 source: synthesized 16-step kick/snare/hat/tom gates:** pattern sequencing.
 11. Metronome — **Built source as SD app:** physical timing tests pending.
 12. Audio Level Meter — **P7 source: approximate amplitude, not calibrated RMS/SPL:** microphone RMS/peak.
 13. Guitar Tuner — **P7 partial: rough pitch estimator, accuracy pending:** microphone pitch estimator.
-14. Morse Trainer — **Planned:** generate/decode practice tones.
+14. Morse Trainer — **P13 partial: five-letter tone quiz; microphone decoding planned:** generate/decode practice tones.
 15. Audio Spectrum Viewer — **P7 partial: eight coarse bands, not a full FFT:** FFT of microphone samples.
 
 ## P3 wireless, networking and Internet (15)
@@ -57,20 +57,20 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 26. LAN Service Discovery (mDNS/SSDP) — **P8 partial: mDNS HTTP-service query, SSDP planned**
 27. LAN Throughput Test — **Planned**
 28. MQTT Monitor — **P8 partial: trusted plaintext LAN subscriber only, no TLS or publishing**
-29. Internet Radio — **Planned**, codec/bitrate constrained
+29. Internet Radio — **Planned, no streaming decoder yet**, codec/bitrate constrained
 30. Local LAN Chat — **P8 source: unauthenticated ASCII UDP broadcast on LAN**
-31. Weather Dashboard — **Planned**, provider/API required
+31. Weather Dashboard — **P15 source: HTTPS current readings at owner-supplied coordinates, hardware pending**, provider/API required
 32. World Clock / NTP — **P8 partial: UTC NTP only; multi-zone clock planned**
 33. RSS Reader — **P8 partial: first XML title from bounded HTTP response, full reader planned**
-34. Wikipedia Text Reader — **Planned**
-35. Lightweight Web Text Browser — **Planned**
-36. HTTP / REST Client — **P8 partial: HTTP GET only, no TLS or REST methods**
+34. Wikipedia Text Reader — **P15 partial: first bounded ASCII extract over validated HTTPS, hardware pending**
+35. Lightweight Web Text Browser — **P15 partial: static HTTPS HTML tag-stripped prefix, no scripting/navigation**
+36. HTTP / REST Client — **P15 extends with CA-verified HTTPS GET; POST/PUT/auth planned**
 37. LAN File Transfer Server — **Planned**
 38. Smart-home MQTT Controller — **Planned**
 
 ## P4 productivity (14)
 
-39. Full Text Editor — **P11 partial: bounded 1023-byte ASCII editor, multi-file editor planned**
+39. Full Text Editor — **P11/P14 partial: single-file ASCII editing; rich multi-file editor planned**
 40. Searchable Notebook — **Planned**
 41. To-Do Manager — **P5 source; hardware pending**
 42. Calendar — **P5 source; hardware pending** (needs clock sync/manual date)
@@ -88,11 +88,11 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P5 programming and diagnostics (12)
 
-54. BASIC Studio — **P6 partial: BASIC expression REPL, full Studio planned**
+54. BASIC Studio — **P14 partial: numbered 64-line BASIC with IF/THEN/GOTO/RUN; arrays/INPUT/full dialect planned**
 55. Bounded Lua Interpreter — **Planned**, only if memory permits
-56. Syntax-highlighted Code Editor — **Planned**
-57. Hex Viewer / Editor — **P5 source; hardware pending**, backup-required writes
-58. USB Serial Console — **Planned**, available USB roles only
+56. Syntax-highlighted Code Editor — **P14 partial: character-class coloring only, lexical syntax planned**
+57. Hex Viewer / Editor — **P14 partial: bounded editable DATA.BIN with backups, hardware pending**
+58. USB Serial Console — **P14 source: local USB CDC console, hardware pending**, available USB roles only
 59. ASCII / Unicode Table — **P5 source; hardware pending**
 60. Binary/Octal/Decimal/Hex Converter — **Partially in Programmer Calculator (source)**
 61. Logic and Bit Calculator — **Partially in Programmer Calculator (source)**
@@ -113,11 +113,11 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 71. Snake — **P5 source; hardware pending**
 72. Falling Blocks — **P10 source; hardware pending**
-73. Dungeon Crawler — **Planned**
+73. Dungeon Crawler — **P12 source: small three-floor adventure; full RPG planned**
 74. Minesweeper — **P5 source; hardware pending**
-75. Chess — **Planned**
+75. Chess — **P12 source: human two-player legal-move engine; AI/full draw rules planned**
 76. Checkers — **P10 two-player source; physical hardware pending**
-77. Solitaire — **Planned**
+77. Solitaire — **P12 source: draw-one Klondike; undo/hints planned**
 78. Sokoban — **P5 source; hardware pending**
 79. 2048 — **P5 source; hardware pending**
 80. Pong — **P5 source; hardware pending**
@@ -242,7 +242,7 @@ Details: docs/P7_FIELD_MEDIA_FILES_IR.md and docs/P7_ACCEPTANCE.md.
 - Launcher 2.0 resident factory browser: categories, bounded
   case-insensitive search, favorites, four-item recent history,
   preferences safely stored on SD, explicit Y/N install confirmation.
-- Recognized **18 installable SD firmware images** with .APP/.BIN pairs.
+- Previous P11 baseline recognized **18 installable SD firmware images** with .APP/.BIN pairs.
   Launcher 2.0 is a factory change, **not a 19th SD image**.
 - Original physical K132 OTA/recovery/audio/keyboard/SD acceptance
   **NOT PERFORMED**. Do not interpret build success as release certification.
@@ -252,3 +252,34 @@ Details: docs/P7_FIELD_MEDIA_FILES_IR.md and docs/P7_ACCEPTANCE.md.
 
 P10 details: docs/P10_ARCADE2.md. P11: docs/P11_POCKET_PRODUCTIVITY.md.
 Launcher: docs/LAUNCHER2.md and docs/LAUNCHER2_ACCEPTANCE.md.
+
+## P12–P15 source inventory and remaining completion gates
+
+- **P12 ARCADE3:** local Chess, Klondike, Sudoku (additional off-catalog)
+  and 3-floor mini Dungeon, fixed-memory tested.
+- **P13 MUSIC2:** tracker, synthesized drum machine, arpeggiator,
+  chord dictionary, Morse quiz, approximate instrument preset audition.
+- **P14 DEV2:** line-numbered BASIC subset (1000-step RUN cap),
+  character-colored code editor, protected hex editor, USB CDC console,
+  read-only SD USER content search.
+- **P15 WEBSECURE:** owner-CA and NTP-gated HTTPS text/RSS GET,
+  bounded Wikipedia extract, manually configured weather, API GET.
+- **22 independently installable SD firmware image IDs** after P15;
+  one app at a time occupies the replaceable OTA_0 slot, with a
+  separate resident factory launcher.
+- Physical K132 boot/recovery and functional/peripheral evidence
+  **have not been collected**. No source build may be called a certified
+  release without those acceptance gates.
+- Unfinished original catalog entries and deeper acceptance remain:
+  real sampled GM patches, full MIDI sequence editor/playlist,
+  BLE GATT opt-in, LAN throughput/server, secure MQTT/controller,
+  Internet radio, full RSS/HTML browsing, searchable notebooks,
+  encrypted password vault/security review, Lua, lexical syntax
+  highlighting, IR non-NEC code library, full game save/high-score
+  system, full SD manager, Theme Editor and Settings Profiles.
+- Some features rely on owner-supplied network API endpoints, trusted
+  certificates or optional new hardware; they cannot be honestly
+  marked complete merely from a compiled source tree.
+
+Feature docs: docs/P12_ARCADE3.md, docs/P13_MUSIC_PRODUCTION.md,
+docs/P14_DEV_STUDIO.md, docs/P15_SECURE_WEB.md.

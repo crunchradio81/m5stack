@@ -2,7 +2,7 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P11 source builds have passed CI, including 18 separate SD application images. Launcher 2.0 adds categories/search/favorites and is under verification. No physical original K132 has been tested.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**P1–P13 and Launcher 2.0 automated builds passed. P14 and P15 expand Developer Studio and verified HTTPS, with final CI/hardware gates tracked separately. The original K132 has never been physically tested.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
 ## Resident suite and SD application collections
 
@@ -39,6 +39,10 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | MIDI Deep Tools collection (P9) | Track Analyzer, Piano Roll, Lyrics Catalog, Favorites, Tempo Map |
 | Expanded Arcade (P10) | Falling Blocks, Two-player Checkers, Memory Match, Virtual Pet, Text Adventure |
 | Pocket Productivity (P11) | SD Text Editor, 6x6 Spreadsheet, Flashcards, QR Generator, Random String Maker |
+| Arcade Classics III (P12) | Local Chess, Klondike, Sudoku, three-floor Dungeon |
+| Music Production (P13) | 4-track step tracker, drums, arpeggio, chords, Morse quiz, preset audition |
+| Developer Studio II (P14) | Numbered BASIC, code/hex editing, USB serial console, SD search |
+| Verified HTTPS Web Tools (P15) | HTTPS text/RSS, Wikipedia, manual-coordinate weather, API GET, CA setup |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -54,11 +58,12 @@ pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_b
         -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
         -e sd_devtools -e sd_system \\
         -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
-        -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11
+        -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11 \\
+        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The ZIP contains **eighteen** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS, MIDITOOLS, ARCADE2 and POCKET11. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
+The ZIP contains **twenty-two** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS, MIDITOOLS, ARCADE2, POCKET11, ARCADE3, MUSIC2, DEV2 and WEBSECURE. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -68,7 +73,7 @@ firmware/configuration and must use a one-time full flash erase. Do not
 execute that without a backup and consent. [Read the exact installation
 and recovery instructions](docs/SD_LAUNCHER.md).
 
-GitHub Actions compiles the factory launcher and eighteen SD app firmware images, runs portable regressions and packages eighteen manifest/binary pairs for SD.
+GitHub Actions compiles the factory launcher and twenty-two SD app firmware images, runs portable regressions and packages twenty-two manifest/binary pairs for SD.
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
@@ -295,3 +300,24 @@ not silently replaced. This changes the factory firmware and therefore
 requires a deliberate factory USB update, while preserving the existing
 custom partition table. Read [Launcher 2.0 controls](docs/LAUNCHER2.md)
 and [physical acceptance](docs/LAUNCHER2_ACCEPTANCE.md).
+
+## P12–P15 — Remaining-catalog implementation passes
+
+- **P12 Arcade III** adds local Chess, Klondike Solitaire, Sudoku and
+  three-floor Dungeon; see docs/P12_ARCADE3.md and P12_ACCEPTANCE.md.
+- **P13 Music Production** adds 4×16-step sequencer, drum machine,
+  arpeggiator, chord dictionary, Morse quiz and approximate instrument
+  preset auditions; see docs/P13_MUSIC_PRODUCTION.md.
+- **P14 Developer Studio II** adds numbered BASIC with bounded RUN/GOTO/
+  IF, a compact code editor, guarded hex editing, USB CDC console and
+  read-only USER content search; see docs/P14_DEV_STUDIO.md.
+- **P15 Verified HTTPS** adds manual-CA authenticated HTTPS text/RSS,
+  limited Wikipedia extraction, Open-Meteo with user-provided coords,
+  and bounded HTTPS GET, **without setInsecure**; see docs/P15_SECURE_WEB.md.
+
+**Important:** these are source-stage app modes, not proof that all
+94 catalog features are finished. Full GM samples, secure vault, Lua,
+GATT, unrestricted file management, Internet radio, advanced MIDI
+playlist/editor, full RSS/browser, theme/settings profiles and real
+K132 physical certification remain open. An owner-created SD Wi-Fi
+password is plaintext; HTTPS needs a trusted PEM CA and a synced clock.
