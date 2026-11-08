@@ -222,7 +222,7 @@ public:
     void reset(){x_=4;y_=5;boxX_=4;boxY_=3;goalX_=4;goalY_=2;}
     bool wall(int x,int y)const {
         if(x<=0||x>=W-1||y<=0||y>=H-1)return true;
-        return x==2&&y==2 || x==7&&y==3;
+        return (x==2&&y==2) || (x==7&&y==3);
     }
     bool move(Dir d) {
         int dx=0,dy=0;

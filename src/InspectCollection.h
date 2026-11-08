@@ -151,7 +151,7 @@ public:
                 if(selected_==i)d.fillRect(3,y-1,233,11,sel);
                 d.setTextColor(white,selected_==i?sel:bg);
                 d.setCursor(5,y);
-                d.print(String(dir_[i]?'[D] ': ' ')+names_[i]);
+                d.print(String(dir_[i]?"[D] ":"    ")+names_[i]);
             }
             d.setTextColor(dim,bg);d.setCursor(5,109);
             d.print(status_.substring(0,37));
@@ -177,6 +177,7 @@ public:
             }
         } else if(mode_==1) {
             if(!file_.seek(offset_))return;
+            if(offset_)while(file_.available()) { if(file_.read()=='\n')break; }
             int row=0;
             while(file_.available()&&row<6){
                 char raw[481]={};size_t count=0;

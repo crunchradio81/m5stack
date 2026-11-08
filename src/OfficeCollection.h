@@ -192,7 +192,7 @@ private:
             if(in)in.close();
             status_="Large/invalid data protected";readOnly_=true;return false;
         }
-        char buffer[4097]={};
+        static char buffer[4097]={};
         const size_t len=in.size();
         const bool ok=in.readBytes(buffer,len)==len;
         in.close();
@@ -205,7 +205,7 @@ private:
     }
     bool save(){
         if(!sd_||readOnly_)return false;
-        char bytes[4096];
+        static char bytes[4096];
         const size_t len=records_.serialize(bytes,sizeof(bytes));
         if(!len&&records_.count())return false;
         const String path=filename(mode_);
