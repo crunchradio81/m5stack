@@ -68,13 +68,14 @@ inline bool validName(const char*name){
 inline bool restoredName(const char*source,unsigned slot,
                          char*out,size_t cap){
  if(!validName(source)||slot<1||slot>9||!out)return false;
- const size_t stemLen=strlen(source)-4;
- const size_t need=4+stemLen+4;
+ const size_t fullStem=strlen(source)-4;
+ const size_t stemLen=fullStem>MaxStem-3?MaxStem-3:fullStem;
+ const size_t need=3+stemLen+4;
  if(cap<=need)return false;
  out[0]='R';out[1]=static_cast<char>('0'+slot);out[2]='-';
  memcpy(out+3,source,stemLen);
  memcpy(out+3+stemLen,".TXT",5);
- return validName(out); // 3+18 = 21 would exceed MaxStem; see below.
+ return validName(out);
 }
 class Text {
 public:
