@@ -49,7 +49,7 @@ inline bool address(const char*ip){
  return a==10||(a==172&&b>=16&&b<=31)||(a==192&&b==168);
 }
 inline bool parse(const char*raw,size_t length,Config&out){
- if(!raw||length>160||length<100||memchr(raw,0,length))return false;
+ if(!raw||length>160||length<90||memchr(raw,0,length))return false;
  static const char header[]="K132MAC1\n";
  if(length<sizeof(header)-1||memcmp(raw,header,sizeof(header)-1))return false;
  Config next;bool host=false,token=false;
