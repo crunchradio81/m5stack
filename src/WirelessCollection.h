@@ -42,7 +42,7 @@ public:
  void input(const Keyboard_Class::KeysState&k){
    if(eraseConfirm_){
      if(letter(k,'y')){
-       const char*path=mode_==3?"/SUITE/FIELD/BLE.CSV":"/SUITE/FIELD/WIFI.CSV";
+       const char*path=mode_>=3?"/SUITE/FIELD/BLE.CSV":"/SUITE/FIELD/WIFI.CSV";
        if(sd_&&SD.exists(path)&&SD.remove(path))status_="Log erased";
        else status_="No log / erase failed";
      }else status_="Erase canceled";
@@ -77,8 +77,12 @@ public:
        status_=running_?"Automatic scan every ~7s":"Paused";
        if(running_)startWifi();
      }else if(letter(k,'r'))startWifi();
+     const int previous=selected_;
      if(k.up&&selected_>0)--selected_;
      if(k.down&&selected_+1<count_)++selected_;
+     if(selected_!=previous&&mode_==0){
+       focused_="";trend_.clear();
+     }
    } else if(mode_>=3) {
      if(letter(k,'s')||letter(k,'r'))scanBle();
      if(k.up&&selected_>0)--selected_;
@@ -226,7 +230,8 @@ private:
      }else status_="SD log open failed";
    }
    WiFi.scanDelete();WiFi.mode(WIFI_OFF);
-   if(status_!="Wi-Fi log full (1MiB cap)")status_=String("Found ")+found+" access points";
+   if(!status_.startsWith("Wi-Fi log full")&&!status_.startsWith("SD log open failed"))
+     status_=String("Found ")+found+" access points";
    (void)oldCount;dirty_=true;
  }
  void scanBle(){

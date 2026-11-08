@@ -180,7 +180,7 @@ private:
    char dest[44]={};int num=0;
    for(;num<1000;++num){
      snprintf(dest,sizeof(dest),"/SUITE/AUDIO/REC%03d.WAV",num);
-     if(!SD.exists(dest))break;
+     if(!SD.exists(dest)&&!SD.exists(String(dest)+".NEW"))break;
    }
    if(num==1000){status_="999 recordings limit";return;}
    finalName_=dest;pendingName_=String(dest)+".NEW";
