@@ -44,7 +44,7 @@ class Report {
  unsigned count_=0;
  bool cropped_=false;
 public:
- void reset(){memset(rows_,0,sizeof(rows_));count_=0;cropped_=false;}
+ void reset(){for(auto& row:rows_)row=Result{};count_=0;cropped_=false;}
  unsigned count()const{return count_;}
  bool cropped()const{return cropped_;}
  const Result*get(unsigned index)const{return index<count_?&rows_[index]:nullptr;}
