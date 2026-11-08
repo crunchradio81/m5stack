@@ -1,7 +1,7 @@
-name: P22 Native macOS Cardputer remote
+name: P26 Native macOS Cardputer remote and safe installer
 on:
   push:
-    branches: [feature/cardputer-k132-p22-mac-remote, feature/cardputer-k132-p25-native-mac-file-window]
+    branches: [feature/cardputer-k132-p22-mac-remote, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery]
   workflow_dispatch:
 concurrency:
   group: cardputer-mac-remote-${{ github.ref }}
@@ -23,14 +23,29 @@ jobs:
         run: python3 -m py_compile Desktop/lanfile24.py
       - name: Bundle native macOS application (ad-hoc signature, not notarized)
         run: bash Mac/package-app.command
-      - name: Verify P25 bundle has actual executable and transfer helper
+      - name: Verify bundled app and native pairing installer
         run: |
           test -x Mac/dist/CardputerRemoteMac.app/Contents/MacOS/CardputerRemoteMac
           test -s Mac/dist/CardputerRemoteMac.app/Contents/Resources/lanfile24.py
+          test -x Mac/dist/P26-Install-Bundle/Install-CardputerRemoteMac.command
+          test -s Mac/dist/P26-Install-Bundle/CardputerRemoteMac.app/Contents/Resources/lanfile24.py
+          codesign --verify --deep --strict Mac/dist/P26-Install-Bundle/CardputerRemoteMac.app
+      - name: Verify ZIP extraction and safe first install without user changes
+        run: |
+          mkdir -p "$RUNNER_TEMP/p26-extract" "$RUNNER_TEMP/p26-user"
+          ditto -x -k Mac/dist/CardputerRemoteMac-macOS-unsigned.zip "$RUNNER_TEMP/p26-extract"
+          test -x "$RUNNER_TEMP/p26-extract/Install-CardputerRemoteMac.command"
+          test -d "$RUNNER_TEMP/p26-extract/CardputerRemoteMac.app"
+          HOME="$RUNNER_TEMP/p26-user" bash "$RUNNER_TEMP/p26-extract/Install-CardputerRemoteMac.command"
+          codesign --verify --deep --strict "$RUNNER_TEMP/p26-user/Applications/CardputerRemoteMac.app"
+          if HOME="$RUNNER_TEMP/p26-user" bash "$RUNNER_TEMP/p26-extract/Install-CardputerRemoteMac.command"; then
+            echo "Installer incorrectly overwrote existing app" >&2
+            exit 1
+          fi
       - name: Save macOS application ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: CardputerRemoteMac-P25-app-adhoc-unverified
+          name: CardputerRemoteMac-P26-safe-installer-adhoc-unverified
           path: Mac/dist/CardputerRemoteMac-macOS-unsigned.zip
           retention-days: 14
           if-no-files-found: error

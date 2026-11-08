@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import SwiftUI
+import RemoteCore
 
 /// Native Mac UI state for the exact P24/P23 LANFILES protocol.
 /// The only subprocess is our bundled, hash-tested standard-library Python
@@ -39,9 +40,11 @@ final class LanFileTransferModel: ObservableObject {
     var canRun: Bool {
         guard !working, keyReady, hasPython else { return false }
         if direction == .send {
-            return outgoingFile != nil && !cardputerIP.isEmpty
+            return outgoingFile != nil &&
+                Pairing26.validPrivateIPv4(cardputerIP.trimmingCharacters(in: .whitespaces))
         }
-        return inbox != nil && !macIP.isEmpty
+        return inbox != nil &&
+            Pairing26.validPrivateIPv4(macIP.trimmingCharacters(in: .whitespaces))
     }
 
     func chooseKey() {

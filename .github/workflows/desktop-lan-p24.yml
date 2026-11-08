@@ -1,7 +1,7 @@
 name: P24 desktop LANFILES interoperability
 on:
   push:
-    branches: [feature/cardputer-k132-p24-desktop-lan-companion, feature/cardputer-k132-p25-native-mac-file-window]
+    branches: [feature/cardputer-k132-p24-desktop-lan-companion, feature/cardputer-k132-p25-native-mac-file-window, feature/cardputer-k132-p26-mac-onboarding-recovery]
   workflow_dispatch:
 concurrency:
   group: p24-desktop-lan-${{ github.ref }}

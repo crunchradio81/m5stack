@@ -71,3 +71,24 @@ memory use, Mac lock state, clean reboot to factory, USB recovery.
 
 The older LAN-transfer/BLE-GATT P22 concept remains separate and is not
 claimed as implemented by this macOS companion branch.
+
+
+## P26 guided installation and pairing
+
+The packaged P26 macOS ZIP includes CardputerRemoteMac.app plus a user-run
+Install-CardputerRemoteMac.command. This copies to ~/Applications only when
+the destination does not exist. It does not run sudo, auto-launch, strip
+quarantine or bypass macOS Gatekeeper. The app is ad-hoc signed, not notarized.
+
+In the Mac native Macros & Mouse tab, enter this Mac's private IPv4 and
+press **Export REMOTE.CFG…**. Choose an existing private microSD
+/SUITE/MAC directory. Export writes the exact original K132MAC1 format
+with the secret drawn from Keychain; refuses existing REMOTE.CFG and
+symlink destinations, never prints the token. Keep SD private. The
+/SUITE/NET/NET.CFG Wi-Fi settings must still be owner supplied. The
+Mac listener stays OFF until Accessibility is granted and you enable it.
+
+The separate LAN File Transfer tab uses its own LAN.CFG key and rejects
+non-private addresses before subprocess invocation. The two secrets
+are deliberately unrelated. See docs/P26_MAC_ONBOARDING.md for the
+install, export and hardware-acceptance steps.
