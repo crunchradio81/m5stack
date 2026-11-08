@@ -17,7 +17,7 @@ struct Source {
 
 enum class Kind : uint8_t {
     NoteOn, NoteOff, Control, Program, PitchBend, Tempo, TimeSignature,
-    PolyPressure, ChannelPressure
+    PolyPressure, ChannelPressure, Lyric, Text
 };
 
 struct Event {
@@ -25,6 +25,7 @@ struct Event {
     uint32_t tempo=500000; // microseconds per quarter note, only for Tempo
     uint8_t track=0, channel=0, a=0, b=0, numerator=4, denominatorPower=2;
     Kind kind=Kind::NoteOff;
+    char text[48]={}; // truncated bounded ASCII lyric/text event
 };
 
 class Reader {
@@ -175,6 +176,22 @@ private:
                     t.next.tick=t.tick;t.next.track=t.index;
                     t.next.kind=Kind::TimeSignature;
                     t.next.numerator=a;t.next.denominatorPower=b;
+                    t.running=0;t.ready=true;return true;
+                }
+                if((meta==0x05 || meta==0x01) && len>0) {
+                    t.next=Event{};
+                    t.next.tick=t.tick;t.next.track=t.index;
+                    t.next.kind=meta==0x05?Kind::Lyric:Kind::Text;
+                    const uint32_t keep=len<sizeof(t.next.text)-1?
+                        len:sizeof(t.next.text)-1;
+                    for(uint32_t i=0;i<keep;++i){
+                        uint8_t c=0;
+                        if(!get(t,c))return false;
+                        t.next.text[i]=(c>=32 && c<=126)?
+                            static_cast<char>(c):' ';
+                    }
+                    t.next.text[keep]=0;
+                    if(!skip(t,len-keep))return false;
                     t.running=0;t.ready=true;return true;
                 }
                 if(!skip(t,len)) return false;
