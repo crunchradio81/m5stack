@@ -205,7 +205,7 @@ Fields: session ID (new on boot), milliseconds since boot, scan sequence, access
 
 ## P5 collection controls and limitations
 
-The eight SD packages live in FAT32 `/SUITE/APPS`. Open **SD App Library**
+The separately compiled SD app packages live in FAT32 `/SUITE/APPS`. Open **SD App Library**
 from the factory suite, choose a package, press Enter and confirm with Y.
 The device installs that one package to OTA_0, then boots it; **B** goes
 back to the package's submenu and the top-left backtick/Escape restarts

@@ -152,8 +152,8 @@ This first install erases previous internal data/firmware so that an
 old OTA boot selection cannot conflict with the new factory layout.
 Do not execute that erase command merely to test a source branch.
 
-Alternatively, download the twenty-six CI artifacts for **this same
-commit**, including the SD app ZIP, from GitHub Actions. Prebuilt
+Alternatively, download the matching CI artifacts for **this same
+commit**, including the combined SD app ZIP, from GitHub Actions. Prebuilt
 binaries are **unverified** until physical board acceptance.
 
 ## On-device
@@ -166,7 +166,8 @@ binaries are **unverified** until physical board acceptance.
    Developer Tools, System Toolbox, IR Remote Tools, Wireless Field Lab,
    Audio Lab, Safe SD File Tools, Networking & Internet, MIDI Deep Tools, Expanded Arcade,
    Pocket Productivity, Arcade Classics III, Music Production, Developer
-   Studio II and Verified HTTPS.
+   Studio II, Verified HTTPS, Themes and Settings, Notebook and Verified
+   Backups, and Safe USER File Library.
 5. Enter opens a confirmation screen. Y verifies and installs; N cancels.
 6. After complete SHA check and write, the app boots from OTA_0.
 7. **Home / Escape** in a suite-managed app restarts into the factory
