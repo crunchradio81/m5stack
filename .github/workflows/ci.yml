@@ -1,7 +1,7 @@
 name: K132 source checks
 on:
   push:
-    branches: [main]
+    branches: [main, feature/cardputer-k132-advanced-midi]
   pull_request:
     branches: [main]
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Upload unverified firmware for hardware acceptance
         uses: actions/upload-artifact@v4
         with:
-          name: cardputer-k132-p1-unverified
+          name: cardputer-k132-midi-unverified
           path: .pio/build/cardputer_original/firmware.bin
           if-no-files-found: error
           retention-days: 14
