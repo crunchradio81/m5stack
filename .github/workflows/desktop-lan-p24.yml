@@ -1,0 +1,40 @@
+name: P24 desktop LANFILES interoperability
+on:
+  push:
+    branches: [feature/cardputer-k132-p24-desktop-lan-companion]
+  workflow_dispatch:
+concurrency:
+  group: p24-desktop-lan-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  desktop-protocol:
+    name: Python 3 authenticated LAN protocol (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile desktop command-line source
+        run: python3 -m py_compile Desktop/lanfile24.py Desktop/test_lanfile24.py
+      - name: Run real loopback sender/receiver interoperability tests
+        run: python3 -m unittest discover -s Desktop -p 'test_lanfile24.py' -v
+      - name: Package source and user instructions
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p dist/Cardputer-P24-Desktop-LAN
+          cp Desktop/lanfile24.py Desktop/test_lanfile24.py docs/P24_DESKTOP_LAN.md dist/Cardputer-P24-Desktop-LAN/
+          cd dist && zip -r Cardputer-P24-Desktop-LAN.zip Cardputer-P24-Desktop-LAN
+      - name: Upload Mac/Ubuntu standard-library companion
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cardputer-P24-Desktop-LAN-Python-Source
+          path: dist/Cardputer-P24-Desktop-LAN.zip
+          retention-days: 14
+          if-no-files-found: error
