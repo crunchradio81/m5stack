@@ -207,3 +207,19 @@ Do not claim releases pass until the board-specific evidence exists.
 - Remaining work: per-pixel theme review, arbitrary color customization,
   external OS accessibility verification and physical original K132
   keyboard/display/SD persistence/OTA USB recovery tests.
+
+## P17 — Searchable notes and restricted SD file backups
+
+- New NOTEBOOK SD app: bounded multi-file editing, case-insensitive
+  search, verified saves, non-overwriting note backups and safe restores.
+- New SAFEFILES SD app: restricted USER file browser, streaming binary
+  copy/compare and non-overwriting restore (256KiB/file).
+- Both use the original 8MiB K132, no PSRAM/Grove. Full collection
+  extends to 25 images once compiled and packed.
+- Open gates: portable host tests, full firmware CI, original K132
+  FAT32 removal/power-loss recovery tests, USB OTA return and backup
+  verification under hardware fault conditions.
+- Large multi-megabyte/Unicode notebook, unrestricted manager,
+  deletion/formatting and whole-device backup remain unfinished.
+
+See docs/P17_NOTEBOOK_SAFEFILES.md and docs/P17_ACCEPTANCE.md.
