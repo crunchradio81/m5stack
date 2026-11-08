@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [sd_metronome, sd_piano, sd_channels, sd_ble, sd_arcade, sd_office, sd_inspect, sd_musiclab, sd_devtools, sd_system, sd_irtools, sd_wireless, sd_audiolab, sd_filetools, sd_nettools, sd_miditools, sd_arcade2, sd_pocket11, sd_arcade3, sd_music2, sd_dev2, sd_websecure, sd_themes, sd_notebook]
+        target: [sd_metronome, sd_piano, sd_channels, sd_ble, sd_arcade, sd_office, sd_inspect, sd_musiclab, sd_devtools, sd_system, sd_irtools, sd_wireless, sd_audiolab, sd_filetools, sd_nettools, sd_miditools, sd_arcade2, sd_pocket11, sd_arcade3, sd_music2, sd_dev2, sd_websecure, sd_themes, sd_notebook, sd_safefiles]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

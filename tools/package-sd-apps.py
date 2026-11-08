@@ -39,6 +39,7 @@ APPS = (
     ("sd_websecure", "WEBSECURE", "Verified HTTPS Web Tools"),
     ("sd_themes", "THEMES", "Theme Editor and Settings Profiles"),
     ("sd_notebook", "NOTEBOOK", "Notebook and Verified Backups"),
+    ("sd_safefiles", "SAFEFILES", "Verified USER File Library"),
 )
 MAX_APP_BYTES = 0x300000
 
