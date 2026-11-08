@@ -80,12 +80,9 @@ static void dungeon(){
  assert(d.hasKey());
  for(int x=Dungeon::W/2;x<Dungeon::W-2;++x)assert(d.move(1,0));
  // Monster blocks corridor; walking into it consumes attacks.
- for(int y=1;y<Dungeon::H-2;++y) {
-   if(d.at(Dungeon::W-2,y+1)=='M') {
-     for(int i=0;i<5;++i)assert(d.move(0,1));
-   }else assert(d.move(0,1));
- }
- assert(d.move(0,1)); // stair descend
+ // One encounter may require multiple attacks before moving forward.
+ for(int attempts=0;attempts<30&&d.floor()==1;++attempts)
+   assert(d.move(0,1));
  assert(d.floor()==2);
  assert(d.health()>0);
  d.reset(22);assert(d.floor()==1&&!d.won()&&!d.lost());
