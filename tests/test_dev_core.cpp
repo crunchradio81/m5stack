@@ -1,5 +1,6 @@
 #include "../src/core/DevCore.h"
 #include <cassert>
+#include <initializer_list>
 #include <cmath>
 #include <cstdio>
 #include <cstring>

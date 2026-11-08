@@ -5,7 +5,10 @@
 #include <string.h>
 #include <math.h>
 namespace suite { namespace dev {
-struct Result {bool ok=false;double value=0;};
+struct Result {
+  bool ok;double value;
+  Result(bool valid=false,double number=0):ok(valid),value(number){}
+};
 class Basic {
 public:
   void clear(){for(double &v:vars_)v=0;}
@@ -43,7 +46,8 @@ private:
   static bool word(const char*&s,const char* key){
     const char* p=s;while(*key) {
       char c=*p;if(c>='a'&&c<='z')c=static_cast<char>(c-32);
-      if(c!=*key++)return false;++p;
+      if(c!=*key++)return false;
+      ++p;
     }
     if((*p>='A'&&*p<='Z')||(*p>='a'&&*p<='z'))return false;
     s=p;return true;
@@ -53,7 +57,8 @@ private:
     if(!lhs.ok)return {};
     for(;;) {
       spaces(s);const char op=*s;
-      if(op!='+'&&op!='-')break;++s;
+      if(op!='+'&&op!='-')break;
+      ++s;
       Result rhs=term(s,depth+1);if(!rhs.ok)return {};
       lhs.value=op=='+'?lhs.value+rhs.value:lhs.value-rhs.value;
       if(!isfinite(lhs.value))return {};
@@ -64,7 +69,8 @@ private:
     Result lhs=power(s,depth+1);if(!lhs.ok)return {};
     for(;;){
       spaces(s);const char op=*s;
-      if(op!='*'&&op!='/')break;++s;
+      if(op!='*'&&op!='/')break;
+      ++s;
       Result rhs=power(s,depth+1);if(!rhs.ok)return {};
       if(op=='/'&&rhs.value==0)return {};
       lhs.value=op=='*'?lhs.value*rhs.value:lhs.value/rhs.value;
@@ -267,7 +273,8 @@ public:
             if(!(mem_[i_+row]&(0x80u>>bit)))continue;
             const unsigned px=(v_[x]+bit)%64,py=(v_[y]+row)%32;
             uint8_t& pixel=screen_[py*64+px];
-            if(pixel)v_[15]=1;pixel^=1;
+            if(pixel)v_[15]=1;
+            pixel^=1;
           }
         break;
       }
@@ -295,10 +302,12 @@ public:
             mem_[i_]=v_[x]/100;mem_[i_+1]=(v_[x]/10)%10;mem_[i_+2]=v_[x]%10;break;
           case 0x55:
             if(i_+x>=4096)return fail();
-            for(unsigned j=0;j<=x;++j)mem_[i_+j]=v_[j];break;
+            for(unsigned j=0;j<=x;++j)mem_[i_+j]=v_[j];
+            break;
           case 0x65:
             if(i_+x>=4096)return fail();
-            for(unsigned j=0;j<=x;++j)v_[j]=mem_[i_+j];break;
+            for(unsigned j=0;j<=x;++j)v_[j]=mem_[i_+j];
+            break;
           default:return fail();
         }
         break;
