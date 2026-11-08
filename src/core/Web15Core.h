@@ -93,7 +93,7 @@ inline bool parse(const char*data,size_t n,Config&out){
    else if(!strcmp(line,"LATITUDE")){flag=128;ok=decimal(sep,-90,90,next.latitude);}
    else if(!strcmp(line,"LONGITUDE")){flag=256;ok=decimal(sep,-180,180,next.longitude);}
    else return false;
-   if(!ok||seen&flag)return false;
+   if(!ok||(seen&flag))return false;
    seen|=flag;
  }
  if(((seen&128)!=0)!=((seen&256)!=0))return false;
@@ -119,8 +119,7 @@ inline size_t asciiClean(const char*in,size_t n,char*out,size_t cap){
  for(size_t i=0;i<n&&p<cap-1;++i){
    const unsigned char c=static_cast<unsigned char>(in[i]);
    if(c=='\r')continue;
-   out[p++]=(c>=32&&c<=126)||c=='\n'?'?':'?';
-   if((c>=32&&c<=126)||c=='\n')out[p-1]=static_cast<char>(c);
+   out[p++]=((c>=32&&c<=126)||c=='\n')?static_cast<char>(c):'?';
  }
  out[p]=0;return p;
 }
@@ -220,7 +219,7 @@ inline bool jsonNumber(const char*json,const char*field,double&out){
    if(*p<'0'||*p>'9')break;
    digits[n++]=*p++;
  }
- if(!n||n==1&&digits[0]=='-')return false;
+ if(!n||(n==1&&digits[0]=='-'))return false;
  digits[n]=0;char*end=nullptr;
  const double v=strtod(digits,&end);
  if(!end||*end||!isfinite(v))return false;
