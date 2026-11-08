@@ -1,7 +1,7 @@
 name: K132 source checks
 on:
   push:
-    branches: [main, feature/cardputer-k132-p1-core]
+    branches: [main]
   pull_request:
     branches: [main]
 jobs:
@@ -22,3 +22,10 @@ jobs:
         run: python -m pip install --upgrade platformio
       - name: Compile for original Cardputer
         run: pio run -e cardputer_original
+      - name: Upload unverified firmware for hardware acceptance
+        uses: actions/upload-artifact@v4
+        with:
+          name: cardputer-k132-p1-unverified
+          path: .pio/build/cardputer_original/firmware.bin
+          if-no-files-found: error
+          retention-days: 14
