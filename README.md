@@ -16,6 +16,10 @@ One native, statically linked firmware for the **stock original 2023 M5Stack Car
 | Wi-Fi Scan | Async SSID/RSSI list; no connection or password harvesting |
 | Wi-Fi Logger | Start/Pause, repeated passive 2.4 GHz AP scans, CSV on SD, full details, saved-record browsing, confirmed Erase |
 | MIDI Studio (P2 feature) | Type 0/1 Standard MIDI File streaming, 12-voice internal-speaker synth, tempo changes, track mute/solo, loop, speed and volume controls |
+| Stopwatch (P3) | Pause/resume, eight lap records, centisecond display, uptime-based timing |
+| Countdown (P3) | Editable HHMMSS duration, pause/resume/reset, visual completion notice |
+| Unit Converter (P3) | Sixteen unit conversions across five measurement categories |
+| Programmer Calculator (P3) | Binary/octal/decimal/hex values and 32-bit AND, OR, XOR, NOT and shifts |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -56,6 +60,10 @@ Do not flash until the build passes. The CI workflow runs C++ host tests and a P
 | MIDI Library | Put .MID or .MIDI files in /SUITE/MIDI on SD. Fn Up/Down select, Enter load, R rescan |
 | MIDI Player | Enter/Space/P pause/resume; N next; Z restart; L loop; A auto-next; +/- speed 50–200%; , / . transpose; [ / ] volume; M mixer; H help; B library |
 | MIDI Mixer | Fn Up/Down select track; Enter or M mute; S solo; B player |
+| Stopwatch | S/Enter start or pause, L lap, R reset while paused |
+| Countdown | Type HHMMSS (0130 means 1m30s), Enter set, S start/pause, R reset |
+| Unit Converter | Fn Up/Down change conversion, type number, Backspace edit, C clear |
+| Programmer Calculator | H base, O operation, T select operand, type digits, Backspace edit, R clear |
 | Settings | Fn+Up / Fn+Down select option; Fn+Left / Fn+Right or Enter change |
 
 The original keyboard's arrow and Escape functions are on the Fn layer; the code reads the official M5Cardputer key-state fields.
@@ -65,6 +73,25 @@ The original keyboard's arrow and Escape functions are on the Fn layer; the code
 If a FAT32 microSD card is mounted, the suite creates /SUITE. Notes live at /SUITE/NOTES.TXT; preferences at /SUITE/CONFIG.TXT. A save first writes and checks a .NEW file, renames the previous version to .BAK, then installs the new file. On next boot, a missing primary file is recovered from .BAK if available. **FAT SD storage is not power-loss transactional:** avoid power cycling during writes and keep your own backups.
 
 Notes or preview files larger than 4096 bytes, or containing non-ASCII content, are rejected rather than silently truncated. An invalid existing note is protected from overwrite. Without SD, edits and settings are temporary.
+
+## P3 offline pocket tools (four more apps)
+
+The P3 branch adds four standalone applications to the scrollable launcher:
+**Stopwatch**, **Countdown**, **Unit Converter** and **Programmer Calculator**.
+They require no SD, network, GPS, external RTC or Grove accessories.
+
+The stopwatch offers elapsed time and eight laps. The countdown accepts
+one to six digits interpreted as HHMMSS, with explicit valid minute/second
+ranges and a **visual-only** completion indication; it is not a wake-up alarm
+and does not persist through power-off. Neither makes up wall-clock time.
+
+The converter includes 16 measurement directions across distance, mass,
+speed, temperature and US liquid volume. The programmer calculator supports
+32-bit **unsigned** values, binary/octal/decimal/hex input, bitwise operators
+and bounded 0–31-place shifts. See
+[the P3 hardware acceptance checklist](docs/P3_ACCEPTANCE.md).
+
+**P3 code is unverified on actual hardware until acceptance is recorded.**
 
 ## P2 MIDI Studio (first major advanced app)
 
