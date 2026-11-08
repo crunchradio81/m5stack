@@ -31,7 +31,8 @@ inline Category category(const char*id){
      !strcmp(id,"WIRELESS")||!strcmp(id,"NETTOOLS"))
     return Category::Wireless;
   if(!strcmp(id,"ARCADE")||!strcmp(id,"ARCADE2"))return Category::Games;
-  if(!strcmp(id,"OFFICE")||!strcmp(id,"POCKET11"))return Category::Office;
+  if(!strcmp(id,"OFFICE")||!strcmp(id,"POCKET11")||
+     !strcmp(id,"NOTEBOOK"))return Category::Office;
   if(!strcmp(id,"IRTOOLS"))return Category::Infrared;
   return Category::Tools;
 }
