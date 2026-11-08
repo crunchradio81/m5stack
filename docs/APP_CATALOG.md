@@ -30,7 +30,7 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
    patches, not PSRAM-only SF2 loading.
 4. MIDI Track Analyzer — **P9 source: bounded note/channel/tempo statistics, hardware pending:** notes, tempo map, channel programs,
    event browser and instrument activity.
-5. MIDI Playlist Manager — **P9 partial: saved favorites only; ordered playlists/resume planned:** playlists/favorites, sorting, resume.
+5. MIDI Playlist Manager — **P21 source: 24-song editable queue with reorder, save/recovery, and next-track playback from factory MIDI player; hardware pending.**
 6. Voice Recorder — **P7 source; hardware pending:** microphone audio to SD; no simultaneous capture/play.
 7. WAV Player — **P7 source; 8/16k mono PCM16 only, hardware pending:** mono streaming.
 8. Music Tracker — **P13 partial: 4x16 step sequencer, no song arrangement:** patterns and sample-lite instruments.
@@ -54,14 +54,14 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 23. BLE GATT Explorer — **Planned**, user-consented device connections only
 24. Ping / latency diagnostics — **P8 source: single ICMP echo, hardware pending**
 25. DNS Lookup — **P8 source: bounded IPv4 lookup, hardware pending**
-26. LAN Service Discovery (mDNS/SSDP) — **P8 partial: mDNS HTTP-service query, SSDP planned**
+26. LAN Service Discovery (mDNS/SSDP) — **P21 source: existing mDNS and opt-in bounded SSDP multicast device viewer in FIELD2; hardware pending**
 27. LAN Throughput Test — **Planned**
 28. MQTT Monitor — **P8 partial: trusted plaintext LAN subscriber only, no TLS or publishing**
 29. Internet Radio — **Planned, no streaming decoder yet**, codec/bitrate constrained
 30. Local LAN Chat — **P8 source: unauthenticated ASCII UDP broadcast on LAN**
 31. Weather Dashboard — **P15 source: HTTPS current readings at owner-supplied coordinates, hardware pending**, provider/API required
 32. World Clock / NTP — **P8 partial: UTC NTP only; multi-zone clock planned**
-33. RSS Reader — **P8 partial: first XML title from bounded HTTP response, full reader planned**
+33. RSS Reader — **P21 source: CA-verified HTTPS RSS/Atom first 8 item titles in bounded 3 KiB response, navigation; full articles and offline history planned**
 34. Wikipedia Text Reader — **P15 partial: first bounded ASCII extract over validated HTTPS, hardware pending**
 35. Lightweight Web Text Browser — **P15 partial: static HTTPS HTML tag-stripped prefix, no scripting/navigation**
 36. HTTP / REST Client — **P15 extends with CA-verified HTTPS GET; POST/PUT/auth planned**

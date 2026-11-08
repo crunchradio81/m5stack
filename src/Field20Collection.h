@@ -7,6 +7,8 @@
 #include <SPI.h>
 #include <SD.h>
 #include <WiFi.h>
+#include <WiFiUdp.h>
+#include "core/Ssdp21Core.h"
 #include <time.h>
 #include "core/Field20Core.h"
 #include "core/Net8Core.h"
@@ -25,17 +27,18 @@ class Field20Collection {
   if(client_)client_.stop();
   if(receiver_)receiver_.stop();
   server_.stop();
+  stopSsdp();
   WiFi.disconnect(true);WiFi.mode(WIFI_OFF);
  }
  bool dirty() const {return dirty_;}
  void input(const Keyboard_Class::KeysState&k){
   if(mode_<0){
    if(k.up&&menu_>0)--menu_;
-   if(k.down&&menu_<2)++menu_;
+   if(k.down&&menu_<3)++menu_;
    if(k.enter){mode_=menu_;selected_=0;if(mode_==0)loadHistory();}
    dirty_=true;return;
   }
-  if(letter(k,'b')){endListener();mode_=-1;dirty_=true;return;}
+  if(letter(k,'b')){endListener();stopSsdp();mode_=-1;dirty_=true;return;}
   if(mode_==0){
    if(k.up&&selected_>0)--selected_;
    if(k.down&&selected_+1<historyCount_)++selected_;
@@ -50,6 +53,11 @@ class Field20Collection {
     if(letter(k,'l'))listen();
     if(letter(k,'t'))transmit();
     if(letter(k,'x'))endListener();
+   }else if(mode_==3){
+    if(letter(k,'s'))startSsdp();
+    if(letter(k,'r')){stopSsdp();ssdpCount_=0;status_="Discovery cleared";}
+    if(k.up&&selected_>0)--selected_;
+    if(k.down&&selected_+1<ssdpCount_)++selected_;
    }
   }
   dirty_=true;
@@ -65,6 +73,7 @@ class Field20Collection {
    }
   }
   if(mode_==1 && now-lastClock_>=1000){lastClock_=now;dirty_=true;}
+  if(ssdpActive_)pollSsdp();
   if(!listening_)return;
   if(WiFi.status()!=WL_CONNECTED){endListener();status_="LAN connection lost";dirty_=true;return;}
   if(!receiver_){
@@ -99,15 +108,18 @@ class Field20Collection {
   auto&d=M5Cardputer.Display;auto&p=suite::skin16::colors();
   d.fillScreen(p.bg);d.fillRect(0,0,240,23,p.panel);
   d.setTextColor(p.text,p.panel);d.setCursor(5,7);
-  d.print(mode_<0?"FIELD LAB II":mode_==0?"WI-FI LOG HISTORY":mode_==1?"WORLD CLOCK":"LAN THROUGHPUT");
+  d.print(mode_<0?"FIELD LAB II":mode_==0?"WI-FI LOG HISTORY":mode_==1?"WORLD CLOCK":
+          mode_==2?"LAN THROUGHPUT":"SSDP DISCOVERY");
   d.fillRect(0,116,240,19,p.panel);d.setTextColor(p.muted,p.panel);
   d.setCursor(4,121);
   d.print(mode_<0?"Arrows select / Enter":
    mode_==0?"R refresh  B menu":
-   mode_==1?"C WiFi N sync  <> zone B":"C WiFi L listen T send X stop B");
+   mode_==1?"C WiFi N sync  <> zone B":
+   mode_==2?"C WiFi L listen T send X stop B":"C WiFi S discover R clear B");
   if(mode_<0){
-   static const char*names[]={"Wi-Fi History Explorer","World Clock / NTP","LAN Throughput Test"};
-   for(int i=0;i<3;++i){
+   static const char*names[]={"Wi-Fi History Explorer","World Clock / NTP",
+                               "LAN Throughput Test","LAN SSDP Discovery"};
+   for(int i=0;i<4;++i){
     const int y=32+i*22;
     if(i==menu_)d.fillRect(4,y-1,231,17,p.selected);
     d.setTextColor(p.text,i==menu_?p.selected:p.bg);
@@ -152,6 +164,18 @@ class Field20Collection {
    line(62,listening_?"TCP :38946 LISTENING":"No TCP listener",p.good);
    line(78,String("TX kb/s: ")+lastTx_+" RX kb/s: "+lastRx_,p.text);
    line(93,"Unencrypted; trusted LAN only",p.muted);
+  }else if(mode_==3){
+   line(28,String("Network: ")+netState(),p.accent);
+   const int top=selected_>=5?selected_-4:0;
+   for(int i=top;i<ssdpCount_&&i<top+5;++i){
+    const int y=43+(i-top)*12;
+    if(i==selected_)d.fillRect(4,y-1,232,11,p.selected);
+    d.setTextColor(p.text,i==selected_?p.selected:p.bg);
+    d.setCursor(5,y);
+    d.print(String(ssdpNames_[i].type).substring(0,24));
+    d.setCursor(182,y);d.print(ssdpAddresses_[i].substring(0,12));
+   }
+   if(ssdpCount_==0)line(62,"S starts 3-sec multicast search",p.muted);
   }
   if(mode_!=0){
    line(105,status_,p.muted);
@@ -235,6 +259,62 @@ class Field20Collection {
   status_=String("TX ")+sent+" bytes / "+duration+"ms";
   dirty_=true;
  }
+
+ void stopSsdp(){
+  if(ssdpActive_)ssdp_.stop();
+  ssdpActive_=false;
+ }
+ void startSsdp(){
+  if(WiFi.status()!=WL_CONNECTED){status_="Connect Wi-Fi first";return;}
+  if(ssdpActive_){status_="SSDP scan already running";return;}
+  if(!ssdp_.begin(1901)){status_="SSDP UDP bind failed";return;}
+  const char request[]=
+      "M-SEARCH * HTTP/1.1\r\n"
+      "HOST: 239.255.255.250:1900\r\n"
+      "MAN: \"ssdp:discover\"\r\n"
+      "MX: 2\r\nST: ssdp:all\r\n\r\n";
+  if(!ssdp_.beginPacket(IPAddress(239,255,255,250),1900) ||
+     ssdp_.write(reinterpret_cast<const uint8_t*>(request),strlen(request))!=
+         strlen(request) || !ssdp_.endPacket()){
+    ssdp_.stop();status_="SSDP send failed";return;
+  }
+  ssdpCount_=0;selected_=0;
+  ssdpActive_=true;ssdpUntil_=millis()+3200;
+  status_="Listening for SSDP replies (3s)";
+ }
+ void pollSsdp(){
+  for(int tries=0;tries<4;++tries){
+    const int packet=ssdp_.parsePacket();
+    if(packet<=0)break;
+    const IPAddress remote=ssdp_.remoteIP();
+    if(packet>static_cast<int>(suite::ssdp21::MaxResponse)||
+       !suite::field20::privateLan(remote[0],remote[1],remote[2],remote[3])){
+      while(ssdp_.available())ssdp_.read();
+      continue;
+    }
+    char data[suite::ssdp21::MaxResponse+1]={};
+    const int count=ssdp_.read(reinterpret_cast<uint8_t*>(data),packet);
+    suite::ssdp21::Device parsed;
+    if(count!=packet || !suite::ssdp21::parse(data,count,parsed))continue;
+    const String address=remote.toString();
+    bool exists=false;
+    for(int i=0;i<ssdpCount_;++i){
+      if(ssdpAddresses_[i]==address && strcmp(ssdpNames_[i].type,parsed.type)==0)
+        exists=true;
+    }
+    if(!exists && ssdpCount_<12){
+      ssdpAddresses_[ssdpCount_]=address;
+      ssdpNames_[ssdpCount_++]=parsed;
+      dirty_=true;
+    }
+  }
+  if(static_cast<int32_t>(millis()-ssdpUntil_)>=0){
+    stopSsdp();
+    status_=String("SSDP replies: ")+ssdpCount_+" (LAN only)";
+    dirty_=true;
+  }
+ }
+
  void loadHistory(){
   memset(history_,0,sizeof(history_));historyCount_=0;selected_=0;
   if(!sd_){status_="Insert SD card";return;}
@@ -273,6 +353,12 @@ class Field20Collection {
  suite::net8::Config config_;
  suite::field20::History history_[16]={};
  WiFiServer server_{38946};
+ WiFiUDP ssdp_;
+ suite::ssdp21::Device ssdpNames_[12]={};
+ String ssdpAddresses_[12];
+ bool ssdpActive_=false;
+ uint32_t ssdpUntil_=0;
+ int ssdpCount_=0;
  WiFiClient receiver_,client_;
  String status_;
 };
