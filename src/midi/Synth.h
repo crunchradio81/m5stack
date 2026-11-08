@@ -39,6 +39,10 @@ public:
     size_t activeVoices() const {
         size_t n=0;for(const auto &v:voices_) if(v.active) ++n;return n;
     }
+    size_t activeForTrack(uint8_t track) const {
+        size_t n=0;for(const auto &v:voices_) if(v.active && v.track==track) ++n;
+        return n;
+    }
     void event(const smf::Event& e) {
         const uint8_t ch=e.channel&15;
         switch(e.kind) {
