@@ -40,6 +40,7 @@ APPS = (
     ("sd_themes", "THEMES", "Theme Editor and Settings Profiles"),
     ("sd_notebook", "NOTEBOOK", "Notebook and Verified Backups"),
     ("sd_safefiles", "SAFEFILES", "Verified USER File Library"),
+    ("sd_gameboy", "GAMEBOY", "Original Game Boy Emulator"),
 )
 MAX_APP_BYTES = 0x300000
 

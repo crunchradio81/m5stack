@@ -7,4 +7,6 @@ for name in calculator document paths wifi_csv midi_smf midi_synth pocket_tools 
   c++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic "tests/test_$name.cpp" -o "$dir/test_$name"
   "$dir/test_$name"
 done
+cc -std=gnu99 -O2 -Wall -Wextra -Werror tests/test_gameboy19_emulator.c -o "$dir/test_gameboy19_emulator"
+"$dir/test_gameboy19_emulator"
 python3 tests/test_sd_package.py

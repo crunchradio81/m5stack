@@ -17,12 +17,16 @@
     defined(SUITE_APP_WEBSECURE) || \
     defined(SUITE_APP_THEMES) || \
     defined(SUITE_APP_NOTEBOOK) || \
-    defined(SUITE_APP_SAFEFILES)
+    defined(SUITE_APP_SAFEFILES) || \
+    defined(SUITE_APP_GAMEBOY)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_SAFEFILES)
+#if defined(SUITE_APP_GAMEBOY)
+#include "GameBoy19Collection.h"
+using ActiveApp=GameBoy19Collection;
+#elif defined(SUITE_APP_SAFEFILES)
 #include "SafeFiles17Collection.h"
 using ActiveApp=SafeFiles17Collection;
 #elif defined(SUITE_APP_NOTEBOOK)
