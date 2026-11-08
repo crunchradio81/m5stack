@@ -2,9 +2,9 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P3 built in CI; P4 SD launcher and four new apps are under CI verification. None are certified on a physical original Cardputer.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**P1–P4 source compiled in CI; P5 adds 23 further programs across four SD collections. All are still unverified on a physical original Cardputer.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
-## Resident suite and P4 SD applications
+## Resident suite and SD application collections
 
 | Program | Capability |
 | --- | --- |
@@ -25,10 +25,14 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Music Keyboard (SD firmware) | Play 13-note layout on built-in speaker, octave and volume controls |
 | Wi-Fi Channel Analyzer (SD firmware) | Passive 2.4 GHz survey, per-channel counts, peak RSSI and heuristic recommendation |
 | BLE Explorer (SD firmware) | Passive 3-second BLE scan and up to 24 nearby advertiser summaries |
+| Retro Arcade collection | Snake, 2048, Minesweeper, Sokoban, Pong, Breakout, Word Guess |
+| Pocket Office collection | To-do, Contacts, Expenses, Journal, manual Calendar |
+| SD Inspector collection | Hex, CSV, bounded JSON, File Search, ASCII, Storage Analyzer |
+| Music Practice collection | Morse, Tone Generator, Drum Sequencer, Ear Trainer, Tap Tempo |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
-The first 12 entries remain built into the factory suite, including its SD library menu. The four P4 applications are separate executable firmware images stored on SD and installed into a replaceable OTA slot when selected.
+The first 12 entries remain built into the factory suite, including its SD library menu. P4 has four standalone SD firmware images; P5 adds four more SD firmware images, each hosting a category submenu. Selecting an image installs it into the replaceable OTA slot.
 
 ## Build and tests
 
@@ -36,11 +40,12 @@ Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installatio
 
 ~~~sh
 bash tools/run-host-tests.sh
-pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_ble
+pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
+        -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The generated ZIP contains `SUITE/APPS/{METRONOME,PIANO,CHANNELS,BLE}.{APP,BIN}`.
+The ZIP contains eight manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT and MUSICLAB. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -175,3 +180,24 @@ Fields: session ID (new on boot), milliseconds since boot, scan sequence, access
 - [Official original Cardputer hardware](https://docs.m5stack.com/en/core/Cardputer)
 - [Official keyboard API](https://docs.m5stack.com/en/arduino/m5cardputer/keyboard)
 - [M5Cardputer library](https://github.com/m5stack/M5Cardputer)
+
+
+## P5 collection controls and limitations
+
+The eight SD packages live in FAT32 `/SUITE/APPS`. Open **SD App Library**
+from the factory suite, choose a package, press Enter and confirm with Y.
+The device installs that one package to OTA_0, then boots it; **B** goes
+back to the package's submenu and the top-left backtick/Escape restarts
+the factory launcher. Flash switching is not direct SD execution.
+
+**Retro Arcade:** Fn arrows/WASD move; B returns to menu, R restarts.
+**Pocket Office:** N adds, D deletes with confirmation, arrows select,
+Enter toggles a to-do; files saved under `/SUITE/OFFICE`.
+**SD Inspector:** browse read-only files under `/SUITE`, view bounded
+hex/CSV/JSON, search filenames and analyze storage.
+**Music Practice:** built-in speaker tones, Morse messages, drum pattern,
+interval quizzes and tap tempo. This is not a sampled instrument bank.
+
+Detailed controls, limits and tests:
+[program inventory](docs/P5_COLLECTIONS.md) and
+[hardware acceptance](docs/P5_ACCEPTANCE.md).
