@@ -245,7 +245,7 @@ private:
         const int found=results.getCount();
         const int limit=found<24?found:24;
         for(int i=0;i<limit;++i) {
-            const BLEAdvertisedDevice e=results.getDevice(i);
+            BLEAdvertisedDevice e=results.getDevice(i);
             const std::string name=e.getName();
             const std::string mac=e.getAddress().toString();
             strncpy(devices_[count_].name,
