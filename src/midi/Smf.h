@@ -165,7 +165,7 @@ private:
                     t.next=Event{};
                     t.next.tick=t.tick;t.next.track=t.index;
                     t.next.kind=Kind::Tempo;t.next.tempo=tempo;
-                    t.ready=true;return true;
+                    t.running=0;t.ready=true;return true;
                 }
                 if(meta==0x58 && len==4) {
                     uint8_t a,b,c,d;
@@ -175,7 +175,7 @@ private:
                     t.next.tick=t.tick;t.next.track=t.index;
                     t.next.kind=Kind::TimeSignature;
                     t.next.numerator=a;t.next.denominatorPower=b;
-                    t.ready=true;return true;
+                    t.running=0;t.ready=true;return true;
                 }
                 if(!skip(t,len)) return false;
                 t.running=0;continue;
