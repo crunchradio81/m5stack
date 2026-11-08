@@ -344,6 +344,10 @@ struct CardputerRemoteMacApp: App {
                     .tabItem {
                         Label("LAN File Transfer", systemImage: "arrow.left.arrow.right.square")
                     }
+                SDPack27View()
+                    .tabItem {
+                        Label("Install SD Apps", systemImage: "sdcard")
+                    }
             }
             .frame(minWidth: 690, minHeight: 660)
         }
