@@ -2,7 +2,7 @@
 
 The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P13 and Launcher 2.0 automated builds passed. P14 and P15 expand Developer Studio and verified HTTPS, with final CI/hardware gates tracked separately. The original K132 has never been physically tested.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
+**P1–P15 and Launcher 2.0 have passed their automated builds. P16 adds global theme palettes and named SD settings profiles; its complete firmware matrix must pass before release. None of the firmware has been physically tested on an original K132.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
 ## Resident suite and SD application collections
 
@@ -43,6 +43,7 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Music Production (P13) | 4-track step tracker, drums, arpeggio, chords, Morse quiz, preset audition |
 | Developer Studio II (P14) | Numbered BASIC, code/hex editing, USB serial console, SD search |
 | Verified HTTPS Web Tools (P15) | HTTPS text/RSS, Wikipedia, manual-coordinate weather, API GET, CA setup |
+| Theme Editor and Settings Profiles (P16) | Six preset themes, three profiles, brightness, volume, autosave, bounded backup recovery |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -59,11 +60,11 @@ pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_b
         -e sd_devtools -e sd_system \\
         -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
         -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11 \\
-        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure
+        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure -e sd_themes
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The ZIP contains **twenty-two** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS, MIDITOOLS, ARCADE2, POCKET11, ARCADE3, MUSIC2, DEV2 and WEBSECURE. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
+The ZIP contains **twenty-three** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS, NETTOOLS, MIDITOOLS, ARCADE2, POCKET11, ARCADE3, MUSIC2, DEV2, WEBSECURE and THEMES. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -73,7 +74,7 @@ firmware/configuration and must use a one-time full flash erase. Do not
 execute that without a backup and consent. [Read the exact installation
 and recovery instructions](docs/SD_LAUNCHER.md).
 
-GitHub Actions compiles the factory launcher and twenty-two SD app firmware images, runs portable regressions and packages twenty-two manifest/binary pairs for SD.
+GitHub Actions compiles the factory launcher and twenty-three SD app firmware images, runs portable regressions and packages twenty-three manifest/binary pairs for SD.
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
@@ -321,3 +322,24 @@ GATT, unrestricted file management, Internet radio, advanced MIDI
 playlist/editor, full RSS/browser, theme/settings profiles and real
 K132 physical certification remain open. An owner-created SD Wi-Fi
 password is plaintext; HTTPS needs a trusted PEM CA and a synced clock.
+
+## P16 — Shared Theme Editor and Settings Profiles
+
+A new `THEMES` SD collection offers six curated appearance themes,
+three renameable profiles, brightness and speaker-volume preferences,
+Notes autosave, and explicit validated backup recovery. The resident
+factory launcher, MIDI Studio and existing SD collection UIs now use
+a shared startup-loaded color palette. Audio tools use the active
+profile as their initial volume setting; individual volume controls
+remain available.
+
+Profiles persist in `/SUITE/CONFIG/PROFILES.CFG` with a version,
+integrity checksum, bounded validation and `.NEW`/`.BAK` save
+protection. The existing factory `/SUITE/CONFIG.TXT` stays as a
+fallback; active profiles synchronize factory brightness and Notes
+autosave. Settings do **not** contain Wi-Fi passwords or tokens.
+
+Source details and controls: [P16 Theme Profiles](docs/P16_THEME_PROFILES.md).
+Original-board tests: [P16 Acceptance](docs/P16_ACCEPTANCE.md).
+**23 SD firmware IDs** expected after P16; full CI compilation and
+physical original K132 hardware acceptance remain separate gates.
