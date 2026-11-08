@@ -8,13 +8,15 @@ from pathlib import Path
 import zipfile
 
 MAX=0x300000
-def package(binary:Path,source:Path,out:Path):
+def package(binary:Path,source:Path,out:Path,open_source:Path):
     data=binary.read_bytes()
     if len(data)<64 or len(data)>MAX or data[0]!=0xe9:
         raise ValueError("C64 binary missing, oversize, or not ESP32 app")
     required=["LICENSE","P20_ADAPTER_NOTICE.txt","src/main.cpp",
               "src/t-hmi-c64/roms/basic.h","src/t-hmi-c64/roms/kernal.h",
               "src/t-hmi-c64/roms/charset.h"]
+    if not (open_source/"LICENSE").is_file():
+        raise ValueError("Missing complete matching Open ROM sources")
     for path in required:
         if not (source/path).is_file():raise ValueError("Missing adapter/source: "+path)
     main=(source/"src/main.cpp").read_text()
@@ -44,6 +46,10 @@ def package(binary:Path,source:Path,out:Path):
         z.writestr("README.txt",readme)
         z.writestr("SUITE/APPS/C64.APP",manifest)
         z.writestr("SUITE/APPS/C64.BIN",data)
+        for p in sorted(open_source.rglob("*")):
+            if not p.is_file() or ".git" in p.relative_to(open_source).parts:
+                continue
+            z.write(p,arcname="OPEN_ROM_SOURCE/"+p.relative_to(open_source).as_posix())
         for p in sorted(source.rglob("*")):
             if not p.is_file() or set(p.relative_to(source).parts)&{".git",".pio",".pioenvs",".piolibdeps"}:
                 continue
@@ -54,6 +60,7 @@ def main():
     p.add_argument("--binary",type=Path,required=True)
     p.add_argument("--source",type=Path,required=True)
     p.add_argument("--out",type=Path,required=True)
+    p.add_argument("--open-source",type=Path,required=True)
     a=p.parse_args()
-    package(a.binary,a.source,a.out)
+    package(a.binary,a.source,a.out,a.open_source)
 if __name__=="__main__":main()
