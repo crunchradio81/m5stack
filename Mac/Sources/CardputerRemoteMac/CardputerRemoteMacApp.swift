@@ -20,6 +20,8 @@ final class RemoteModel: ObservableObject {
     @Published var status = "Remote control OFF"
     @Published var lastAction = "None"
     @Published var showPairingSecret = false
+    @Published var pairingHost = ""
+    @Published var pairingExportStatus = "Choose this Mac’s private LAN IPv4; export an owner-private REMOTE.CFG."
     @Published var macros: [Macro]
     let secret: [UInt8]
     private let server: RemoteServer
@@ -56,6 +58,11 @@ final class RemoteModel: ObservableObject {
             enabled = false
             status = "Remote control OFF"
         } else {
+            guard hasAccessibility else {
+                status = "Grant Accessibility permission before enabling remote input"
+                requestAccessibility()
+                return
+            }
             // Enabling requires an explicit click in the Mac UI.
             // Mac listens on port 38947; each session has a fresh challenge
             // and every command requires a 256-bit shared-key HMAC.
@@ -70,6 +77,29 @@ final class RemoteModel: ObservableObject {
     }
     var hasAccessibility: Bool { AXIsProcessTrusted() }
     var pairCode: String { RemoteProtocol.hex(secret) }
+    var canExportPairing: Bool { Pairing26.validPrivateIPv4(pairingHost) }
+
+    func exportRemoteConfig() {
+        guard canExportPairing else {
+            pairingExportStatus = "Enter a valid private Mac IPv4 before exporting."
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.title = "Export Cardputer pairing configuration"
+        panel.message = "Choose an existing folder, ideally /SUITE/MAC on your private Cardputer SD. Never export to a public/shared folder."
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let folder = panel.url else { return }
+        do {
+            let output = try Pairing26.saveNew(in: folder,
+                                               address: pairingHost, secret: secret)
+            pairingExportStatus = "Created REMOTE.CFG in \(output.deletingLastPathComponent().path). Existing files are never overwritten."
+        } catch {
+            pairingExportStatus = "Export refused: \(error.localizedDescription)"
+        }
+    }
 
     private func handle(_ event: RemoteProtocol.Message) {
         guard enabled else { return }
@@ -351,7 +381,20 @@ struct RemoteContentView:View {
             Text("Last action: \(model.lastAction)").font(.footnote)
             Divider()
             Text("Pairing").font(.headline)
-            Text("Enter the Mac's LAN IPv4 address and pairing secret in the Cardputer SD file. Do not share your pairing secret.")
+            Text("On your private Cardputer SD, open /SUITE/MAC (create it if needed). Enter this Mac's private LAN IPv4 below and export REMOTE.CFG to that folder.")
+            HStack {
+                TextField("This Mac's IPv4 (e.g. 192.168.1.22)",
+                          text: $model.pairingHost)
+                    .textFieldStyle(.roundedBorder)
+                Button("Export REMOTE.CFG…") { model.exportRemoteConfig() }
+                    .disabled(!model.canExportPairing)
+            }
+            Text(model.pairingExportStatus)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+            Text("The exported file contains the secret. Keep the microSD private, and configure the existing /SUITE/NET/NET.CFG separately for Wi-Fi. Never upload pairing files to GitHub.")
+                .font(.caption).foregroundStyle(.orange)
             Toggle("Reveal pairing secret",isOn:$model.showPairingSecret)
             if model.showPairingSecret {
                 Text(model.pairCode).font(.system(.caption,design:.monospaced))
