@@ -43,6 +43,12 @@ public:
         size_t n=0;for(const auto &v:voices_) if(v.active && v.track==track) ++n;
         return n;
     }
+    size_t activeForPitchClass(uint8_t pc) const {
+        size_t count=0;
+        for(const auto &v:voices_)
+            if(v.active && !v.release && v.note%12==pc%12) ++count;
+        return count;
+    }
     void event(const smf::Event& e) {
         const uint8_t ch=e.channel&15;
         switch(e.kind) {
@@ -176,6 +182,9 @@ private:
             case 121: // Reset controllers
                 volume_[channel]=100;expression_[channel]=127;
                 bend_[channel]=8192;sustain_[channel]=false;
+                for(auto &v:voices_) if(v.active && v.channel==channel && v.held) {
+                    v.held=false;v.release=true;
+                }
                 break;
             case 123: // All notes off
                 for(auto &v:voices_) if(v.channel==channel && v.active) v.release=true;
