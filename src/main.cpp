@@ -9,6 +9,7 @@
 #include "core/Paths.h"
 #include "core/TextDocument.h"
 #include "WifiLogger.h"
+#include "MidiApp.h"
 
 namespace {
 constexpr uint16_t BG=0x0841, PANEL=0x10C4, SELECTED=0x2673;
@@ -19,9 +20,9 @@ constexpr char NOTE_PATH[]="/SUITE/NOTES.TXT";
 constexpr char CONFIG_PATH[]="/SUITE/CONFIG.TXT";
 constexpr uint8_t BRIGHTNESS[]={64,128,192,255};
 
-enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, WifiLog, WifiLogView, WifiLogDetail, WifiLogErase, System, Settings };
-const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","Wi-Fi Logger","System Info","Settings"};
-constexpr int APP_COUNT=7;
+enum class Screen : uint8_t { Home, Notes, Calculator, Files, Preview, Wifi, WifiLog, WifiLogView, WifiLogDetail, WifiLogErase, Midi, System, Settings };
+const char *const APPS[]={"Notes","Calculator","Files","Wi-Fi Scan","Wi-Fi Logger","MIDI Studio","System Info","Settings"};
+constexpr int APP_COUNT=8;
 Screen screen=Screen::Home;
 int appSelected=0, settingsSelected=0;
 bool sdReady=false, noteWritable=true, dirty=true, scanActive=false, autosave=true;
@@ -38,6 +39,8 @@ int wifiLogSelected=0;
 bool hasViewedRecord=false;
 suite::wifi_csv::Record viewedRecord;
 WifiLogger wifiLogger;
+MidiApp midiApp;
+uint32_t lastMidiRefresh=0;
 
 bool has(const Keyboard_Class::KeysState &k,char c) {
     for(char value:k.word) if(value==c) return true;
@@ -151,8 +154,9 @@ void startStorage() {
 void drawHome() {
     frame("CARDPUTER SUITE",sdReady?"Enter open | SD ready":"Enter open | No SD card");
     auto &d=M5Cardputer.Display;
-    for(int i=0;i<APP_COUNT;++i) {
-        const int y=25+i*12;
+    const int top=appSelected>=7?appSelected-6:0;
+    for(int i=top;i<APP_COUNT && i<top+7;++i) {
+        const int y=25+(i-top)*12;
         if(appSelected==i) d.fillRoundRect(3,y-1,232,12,3,SELECTED);
         d.setTextColor(WHITE,appSelected==i?SELECTED:BG);
         d.setCursor(9,y+1);d.print(i+1);d.print("  ");d.print(APPS[i]);
@@ -401,6 +405,7 @@ void render() {
         case Screen::WifiLogView:drawWifiLogView();break;
         case Screen::WifiLogDetail:drawWifiLogDetail();break;
         case Screen::WifiLogErase:drawWifiLogErase();break;
+        case Screen::Midi:midiApp.render();break;
         case Screen::System:drawSystem();break;
         case Screen::Settings:drawSettings();break;
     }
@@ -414,8 +419,9 @@ void openApp(int index) {
         case 2:screen=Screen::Files;refreshFiles();break;
         case 3:screen=Screen::Wifi;startScan();break;
         case 4:screen=Screen::WifiLog;break;
-        case 5:screen=Screen::System;break;
-        case 6:screen=Screen::Settings;break;
+        case 5:screen=Screen::Midi;midiApp.enter(sdReady);break;
+        case 6:screen=Screen::System;break;
+        case 7:screen=Screen::Settings;break;
     }
     dirty=true;
 }
@@ -425,6 +431,7 @@ void returnHome() {
     if(screen==Screen::WifiLog || screen==Screen::WifiLogView ||
        screen==Screen::WifiLogDetail || screen==Screen::WifiLogErase)
         wifiLogger.pause();
+    if(screen==Screen::Midi) midiApp.exit();
     screen=Screen::Home;dirty=true;
 }
 void fileEnter() {
@@ -554,6 +561,9 @@ void input(const Keyboard_Class::KeysState &k) {
                 wifiLogSelected=0;screen=Screen::WifiLog;
             } else if(hasLetter(k,'n') || k.backspace) screen=Screen::WifiLog;
             break;
+        case Screen::Midi:
+            midiApp.onKey(k,sdReady);
+            break;
         case Screen::System:break;
         case Screen::Settings:
             if(k.up) settingsSelected=(settingsSelected+1)%2;
@@ -587,6 +597,12 @@ void loop() {
         input(keys);
     }
     if(screen==Screen::Wifi) pollScan();
+    if(screen==Screen::Midi) {
+        midiApp.poll();
+        if(millis()-lastMidiRefresh>=180) {
+            lastMidiRefresh=millis();dirty=true;
+        }
+    }
     if(wifiLogger.running) wifiLogger.tick();
     if(screen==Screen::WifiLog && millis()-lastWifiLogDraw>=750) {
         lastWifiLogDraw=millis();dirty=true;
