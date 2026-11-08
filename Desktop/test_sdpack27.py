@@ -6,6 +6,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 SCRIPT = Path(__file__).resolve().parent / "sdpack27.py"
@@ -37,6 +38,12 @@ def make_archive(file: Path, *, modify=None):
 
 class P27Tests(unittest.TestCase):
     def setUp(self):
+        # P27 legacy ZIP/filesystem tests exercise a temporary directory.
+        # P28 separately tests that *real* writes reject any non-mounted card.
+        self.mount_guard = patch.object(suite, "require_card_media", return_value=456)
+        self.still_mounted = patch.object(suite, "check_card_still_mounted")
+        self.mount_guard.start()
+        self.still_mounted.start()
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.card = self.root / "CardSD"
@@ -46,6 +53,8 @@ class P27Tests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+        self.still_mounted.stop()
+        self.mount_guard.stop()
 
     def test_validate_complete_archive_without_touching_card(self):
         valid, new, same = suite.build_plan(self.zip, self.card)
