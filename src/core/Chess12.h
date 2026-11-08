@@ -32,7 +32,7 @@ public:
   }
   bool legal(int x,int y,int tx,int ty)const{
     if(ended_||!inside(x,y)||!inside(tx,ty)||board_[y][x]*side_<=0||
-       board_[ty][tx]*side_>0||x==tx&&y==ty)return false;
+       board_[ty][tx]*side_>0||(x==tx&&y==ty))return false;
     Game draft=*this;
     if(!draft.apply(x,y,tx,ty,false))return false;
     return !draft.inCheck(side_);
