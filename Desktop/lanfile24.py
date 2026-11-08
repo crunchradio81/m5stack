@@ -181,7 +181,7 @@ def incoming_folder(folder: Path) -> Path:
 
 
 def handle_receive(peer: socket.socket, inbox: Path, secret: bytes,
-                   *, allow_loopback: bool = False) -> str:
+                   *, allow_loopback: bool = False, progress=None) -> str:
     """Exactly one connection, one file, no overwrite or temporary deletion."""
     if len(secret) != 32:
         raise TransferError("Expected 32-byte key")
@@ -208,6 +208,8 @@ def handle_receive(peer: socket.socket, inbox: Path, secret: bytes,
             peer.sendall(READY)
             hashed = hashlib.sha256()
             remaining = size
+            if progress is not None:
+                progress(0, size)
             while remaining:
                 block = peer.recv(min(4096, remaining))
                 if not block:
@@ -215,6 +217,8 @@ def handle_receive(peer: socket.socket, inbox: Path, secret: bytes,
                 file.write(block)
                 hashed.update(block)
                 remaining -= len(block)
+                if progress is not None:
+                    progress(size - remaining, size)
             file.flush()
             os.fsync(file.fileno())
         if not hmac.compare_digest(hashed.hexdigest(), expected):
@@ -245,7 +249,7 @@ def handle_receive(peer: socket.socket, inbox: Path, secret: bytes,
 
 
 def serve_once(bind: str, inbox: Path, secret: bytes,
-               *, allow_loopback: bool = False, ready=None) -> str:
+               *, allow_loopback: bool = False, ready=None, progress=None) -> str:
     bind = private_ipv4(bind, allow_loopback=allow_loopback)
     incoming_folder(inbox)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
@@ -261,11 +265,13 @@ def serve_once(bind: str, inbox: Path, secret: bytes,
         except socket.timeout as exc:
             raise TransferError("Receiver listen window expired") from exc
         with connection:
-            return handle_receive(connection, inbox, secret, allow_loopback=allow_loopback)
+            return handle_receive(connection, inbox, secret, allow_loopback=allow_loopback,
+                                  progress=progress)
 
 
 def send_file(peer_address: str, file_path: Path, secret: bytes,
-              *, port: int = PORT, allow_loopback: bool = False) -> str:
+              *, port: int = PORT, allow_loopback: bool = False,
+              progress=None) -> str:
     peer_address = private_ipv4(peer_address, allow_loopback=allow_loopback)
     if file_path.is_symlink() or not file_path.is_file() or not safe_name(file_path.name):
         raise TransferError("Send only a regular file with a Cardputer-safe basename")
@@ -283,7 +289,13 @@ def send_file(peer_address: str, file_path: Path, secret: bytes,
         link.sendall(header)
         if read_line(link, 32) != READY:
             raise TransferError("Receiver refused header (key, filename, collision or stale PART)")
-        link.sendall(content)
+        if progress is not None:
+            progress(0, size)
+        for offset in range(0, size, 4096):
+            portion = content[offset:offset + 4096]
+            link.sendall(portion)
+            if progress is not None:
+                progress(offset + len(portion), size)
         if read_line(link, 32) != OK:
             raise TransferError("Receiver could not verify or publish file")
     return f"Sent {file_path.name} ({size} bytes) to {peer_address}"
@@ -299,20 +311,29 @@ def main(argv=None) -> int:
     sender.add_argument("--peer", required=True, help="Cardputer private IPv4")
     sender.add_argument("--file", type=Path, required=True)
     sender.add_argument("--key-file", type=Path, required=True)
+    sender.add_argument("--progress", action="store_true",
+                        help="Emit machine-readable PROGRESS lines (for native Mac UI)")
     receiver = sub.add_parser("receive", help="Receive one Cardputer LANFILES T file")
     receiver.add_argument("--bind", required=True, help="This Mac/Ubuntu machine's private IPv4")
     receiver.add_argument("--inbox", type=Path, required=True, help="Existing destination directory")
     receiver.add_argument("--key-file", type=Path, required=True)
+    receiver.add_argument("--progress", action="store_true",
+                          help="Emit machine-readable PROGRESS lines (for native Mac UI)")
     args = parser.parse_args(argv)
     try:
         if args.action == "generate-key":
             generate_key(args.out)
         else:
             secret = load_key(args.key_file)
+            def report(done: int, total: int) -> None:
+                percent = (done * 100) // total if total else 0
+                print(f"PROGRESS:{percent}", flush=True)
+            callback = report if args.progress else None
             if args.action == "send":
-                print(send_file(args.peer, args.file, secret))
+                print(send_file(args.peer, args.file, secret, progress=callback), flush=True)
             else:
-                print("Received at", serve_once(args.bind, args.inbox, secret))
+                print("Received at", serve_once(args.bind, args.inbox, secret,
+                      progress=callback), flush=True)
         return 0
     except (TransferError, OSError) as exc:
         print(f"LANFILES: {exc}", file=sys.stderr)
