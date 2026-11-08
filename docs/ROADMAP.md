@@ -15,6 +15,14 @@ Target: original K132 with built-in peripherals; **no external Grove units**.
 - Host unit tests plus GitHub PlatformIO build workflow.
 - **Gate still pending:** physical original-Cardputer acceptance.
 
+## P1.1 — walking Wi-Fi Logger
+- Built-in 2.4 GHz AP scanning with Start, Pause, View and confirmed Erase.
+- Append-only bounded CSV: repeated observations, SSID, BSSID, RSSI, channel,
+  advertised security, boot-relative time, scan and session.
+- Browse saved detections on-device without loading the whole CSV into RAM.
+- No Grove, GPS or external hardware; no 5 GHz or client sniffing.
+- **Gate pending:** hardware SD removal/recovery, passive scan and walking tests.
+
 ## P2 — personal tools
 - Editable named text documents with explicit Save As and confirmation prompts.
 - File manager copy/rename/delete only after tested backup and undo behaviors.
