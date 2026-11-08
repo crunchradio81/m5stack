@@ -37,7 +37,8 @@ int main() {
     assert(!parse(bad.c_str(),bad.size(),app));
     bad=valid+std::string(500,'X');
     assert(!parse(bad.c_str(),bad.size(),app));
-    for(const char* id:{"METRONOME","PIANO","CHANNELS","BLE"})
+    for(const char* id:{"METRONOME","PIANO","CHANNELS","BLE",
+                        "ARCADE","OFFICE","INSPECT","MUSICLAB"})
         assert(authorizedId(id));
     assert(!authorizedId("CAMERA"));
     assert(safeFilename("BLE.BIN") && !safeFilename("BLE.bin"));

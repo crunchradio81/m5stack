@@ -13,6 +13,8 @@ int main() {
     assert(strcmp(code,"... --- ...")==0);
     assert(encodeMorse("HI 7",code,sizeof(code)));
     assert(strcmp(code,".... .. / --...")==0);
+    assert(encodeMorse("HI   7 ",code,sizeof(code)));
+    assert(strcmp(code,".... .. / --...")==0);
     char small[4];
     assert(!encodeMorse("SOS",small,sizeof(small)));
     assert(!encodeMorse("",code,sizeof(code)));

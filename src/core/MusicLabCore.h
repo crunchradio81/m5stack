@@ -25,8 +25,7 @@ inline bool encodeMorse(const char* source,char* out,size_t cap) {
     size_t len=0;bool lastWord=false;
     for(const char* p=source;*p;++p) {
         if(*p==' '){
-            if(!len)continue;
-            if(out[len-1]==' ')--len;
+            if(!len||lastWord)continue;
             if(len+2>=cap)return false;
             out[len++]='/';out[len++]=' ';lastWord=true;
             continue;
@@ -39,10 +38,9 @@ inline bool encodeMorse(const char* source,char* out,size_t cap) {
         out[len++]=' ';lastWord=false;
     }
     if(!len)return false;
-    if(out[len-1]==' ')--len;
-    if(len && out[len-1]=='/')--len;
+    while(len && (out[len-1]==' ' || out[len-1]=='/'))--len;
     if(!len)return false;
-    out[len]=0;(void)lastWord;return true;
+    out[len]=0;return true;
 }
 class TapTempo {
 public:
