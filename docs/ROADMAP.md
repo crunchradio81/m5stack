@@ -65,3 +65,15 @@ Target: original K132 with built-in peripherals; **no external Grove units**.
 
 Every phase must compile for **original K132 with no PSRAM**.
 Do not claim releases pass until the board-specific evidence exists.
+
+## P5 — four SD collections with 23 new programs
+
+- Seven Arcade games, five Pocket Office applications, six SD Inspector
+  utilities and five Music Practice applications.
+- Four new independent SD app images `ARCADE`, `OFFICE`, `INSPECT`,
+  `MUSICLAB`; eight images total packaged by CI.
+- Fixed-memory game logic, record codec, CSV/JSON bounds and Morse/tap
+  timing tested by host C++ regressions.
+- **Still pending:** physical original K132 flash/return-to-factory,
+  SD persistence, display, keyboard, speaker and battery acceptance.
+- The rest of the 94-program project backlog remains open.

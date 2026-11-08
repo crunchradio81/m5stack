@@ -9,7 +9,7 @@ Statuses: **Built source** means source code exists, not necessarily merged or h
 
 ## P4 executable SD library (built source, hardware acceptance pending)
 
-A persistent factory menu launches four separately compiled SD firmware
+A persistent factory menu launches eight separately compiled SD firmware
 images into a replaceable OTA slot, using owner-controlled manifests and
 SHA256 integrity checks. Only suite-managed app IDs are allowed; this is
 not authenticated firmware or guaranteed hardware recovery. See docs/SD_LAUNCHER.md.
@@ -72,16 +72,16 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 39. Full Text Editor — **Planned**
 40. Searchable Notebook — **Planned**
-41. To-Do Manager — **Planned**
-42. Calendar — **Planned** (needs clock sync/manual date)
-43. Contacts — **Planned**
+41. To-Do Manager — **P5 source; hardware pending**
+42. Calendar — **P5 source; hardware pending** (needs clock sync/manual date)
+43. Contacts — **P5 source; hardware pending**
 44. Scientific Calculator — **Planned**
 45. Programmer Calculator — **Built source, hardware pending**
 46. Spreadsheet Mini — **Planned**
-47. Expenses / Budget Tracker — **Planned**
+47. Expenses / Budget Tracker — **P5 source; hardware pending**
 48. Password Generator — **Planned** (system RNG)
 49. Encrypted Password Vault — **Planned** (security review required)
-50. Personal Journal — **Planned**
+50. Personal Journal — **P5 source; hardware pending**
 51. Stopwatch / Lap Timer — **Built source, hardware pending**
 52. Countdown Timers — **Built source, hardware pending**
 53. Unit Converter — **Built source, hardware pending**
@@ -91,12 +91,12 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 54. BASIC Studio — **Planned**
 55. Bounded Lua Interpreter — **Planned**, only if memory permits
 56. Syntax-highlighted Code Editor — **Planned**
-57. Hex Viewer / Editor — **Planned**, backup-required writes
+57. Hex Viewer / Editor — **P5 source; hardware pending**, backup-required writes
 58. USB Serial Console — **Planned**, available USB roles only
-59. ASCII / Unicode Table — **Planned**
+59. ASCII / Unicode Table — **P5 source; hardware pending**
 60. Binary/Octal/Decimal/Hex Converter — **Partially in Programmer Calculator (source)**
 61. Logic and Bit Calculator — **Partially in Programmer Calculator (source)**
-62. JSON Inspector — **Planned**
+62. JSON Inspector — **P5 source; hardware pending**
 63. QR Code Generator — **Planned** (display-only)
 64. CHIP-8 Interpreter — **Planned**
 65. SD Benchmark — **Planned**
@@ -111,27 +111,27 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 
 ## P7 arcade, puzzles and interactive (15)
 
-71. Snake — **Planned**
+71. Snake — **P5 source; hardware pending**
 72. Falling Blocks — **Planned**
 73. Dungeon Crawler — **Planned**
-74. Minesweeper — **Planned**
+74. Minesweeper — **P5 source; hardware pending**
 75. Chess — **Planned**
 76. Checkers — **Planned**
 77. Solitaire — **Planned**
-78. Sokoban — **Planned**
-79. 2048 — **Planned**
-80. Pong — **Planned**
-81. Breakout — **Planned**
-82. Word Guess — **Planned**
+78. Sokoban — **P5 source; hardware pending**
+79. 2048 — **P5 source; hardware pending**
+80. Pong — **P5 source; hardware pending**
+81. Breakout — **P5 source; hardware pending**
+82. Word Guess — **P5 source; hardware pending**
 83. Text Adventure Interpreter — **Planned**
 84. Virtual Pet — **Planned**
-85. Retro Arcade Frontend with saves / high scores — **Planned**
+85. Retro Arcade Frontend with saves / high scores — **P5 source; hardware pending**
 
 ## P8 core system utilities (9)
 
 86. Full SD File Manager — **Planned**, safe operations and confirmation
-87. File Search / Content Search — **Planned**
-88. Storage Analyzer — **Planned**
+87. File Search / Content Search — **P5 source; hardware pending**
+88. Storage Analyzer — **P5 source; hardware pending**
 89. Backup / Restore Manager — **Planned**
 90. Battery Monitor — **Planned**
 91. Firmware Information / Recovery Guide — **Planned**
@@ -150,3 +150,18 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
   developing optional instrument banks, lyrics and visualization.
 - Never assert that GPS coordinates, Wi-Fi clients, headphones, IR receive or
   multi-GHz wireless exist on the stock Cardputer.
+
+## P5 application collection inventory (23 programs in four packages)
+
+- ARCADE: Snake, 2048, Minesweeper, Sokoban (one level), Pong,
+  Breakout and Word Guess (seven).
+- OFFICE: To-do, Contacts, Expense Tracker, Journal and Manual
+  Calendar (five). ASCII-only fixed-size SD records.
+- INSPECT: Hex Viewer, CSV Viewer, JSON syntax viewer, File Search,
+  ASCII Chart and bounded Storage Analyzer (six). Read-only.
+- MUSICLAB: Morse Player, Tone Generator, Drum Sequencer, Interval
+  Ear Trainer and Tap Tempo (five). Built-in speaker only.
+
+These are source implementations, **not** physical hardware certification.
+Remaining numbered catalog entries are still planned. GitHub epic #3
+tracks the full 94-program goal; the P5 branch does not finish all 94.
