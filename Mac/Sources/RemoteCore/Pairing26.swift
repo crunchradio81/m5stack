@@ -4,10 +4,10 @@ import Foundation
 /// The exact K132MAC1 owner-private SD pairing format consumed by
 /// src/core/MacRemote22Core.h on the original stock Cardputer.
 /// Remote access remains OFF until the Mac owner explicitly enables it.
-enum Pairing26 {
-    enum Error: Swift.Error, LocalizedError {
+public enum Pairing26 {
+    public enum Error: Swift.Error, LocalizedError {
         case invalidAddress, invalidKey, invalidDirectory, exists, writeFailed
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .invalidAddress:
                 return "Enter this Mac's private IPv4 address (10.x, 172.16–31.x, or 192.168.x)."
@@ -25,7 +25,7 @@ enum Pairing26 {
 
     /// Rejects hostnames, leading-zero octets, wildcard IPs, public IPs
     /// and host-octet 0/255 exactly like the K132 source parser.
-    static func validPrivateIPv4(_ address: String) -> Bool {
+    public static func validPrivateIPv4(_ address: String) -> Bool {
         let parts = address.split(separator: ".", omittingEmptySubsequences: false)
         guard parts.count == 4 else { return false }
         var numbers: [Int] = []
@@ -44,7 +44,7 @@ enum Pairing26 {
             (numbers[0] == 192 && numbers[1] == 168)
     }
 
-    static func encode(address: String, secret: [UInt8]) throws -> Data {
+    public static func encode(address: String, secret: [UInt8]) throws -> Data {
         guard validPrivateIPv4(address) else { throw Error.invalidAddress }
         guard secret.count == 32 else { throw Error.invalidKey }
         let alphabet = Array("0123456789abcdef".utf8)
@@ -67,7 +67,7 @@ enum Pairing26 {
     /// APFS. A FAT32 SD card does not preserve Unix file permissions.
     /// Never replace/rename an existing pairing config or follow a file symlink.
     @discardableResult
-    static func saveNew(in folder: URL, address: String,
+    public static func saveNew(in folder: URL, address: String,
                         secret: [UInt8]) throws -> URL {
         let value = try encode(address: address, secret: secret)
         var isDirectory: ObjCBool = false
