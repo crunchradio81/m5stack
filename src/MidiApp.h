@@ -14,7 +14,7 @@ class MidiApp {
 public:
     static constexpr const char* Folder="/SUITE/MIDI";
     static constexpr int MaxSongs=48;
-    enum class Page:uint8_t {Library,Playing,Mixer,Help};
+    enum class Page:uint8_t {Library,Playing,Mixer,Help,Karaoke};
 
     void enter(bool sdReady) {
         exit();
@@ -23,6 +23,7 @@ public:
     }
     void exit() {
         playing_=loaded_=hasNext_=endTail_=false;
+        lastLyric_="";
         speakerOff();source_.close();synth_.allSoundOff();
     }
     void poll() {
@@ -73,6 +74,13 @@ public:
             if(k.backspace || letter(k,'b') || k.enter)page_=Page::Playing;
             return;
         }
+        if(page_==Page::Karaoke) {
+            if(k.backspace || letter(k,'b') || letter(k,'k')) {
+                page_=Page::Playing;return;
+            }
+            if(k.enter || symbol(k,' ') || letter(k,'p'))toggle();
+            return;
+        }
         if(page_==Page::Mixer) {
             if(k.up && trackSelected_>0)--trackSelected_;
             if(k.down && trackSelected_+1<reader_.trackCount())++trackSelected_;
@@ -92,6 +100,7 @@ public:
             exit();page_=Page::Library;return;
         }
         if(letter(k,'m')) {page_=Page::Mixer;return;}
+        if(letter(k,'k')) {page_=Page::Karaoke;return;}
         if(letter(k,'h') || symbol(k,'?')) {page_=Page::Help;return;}
         if(letter(k,'l')) {loop_=!loop_;return;}
         if(letter(k,'a')) {autoNext_=!autoNext_;return;}
@@ -131,15 +140,17 @@ public:
         d.setTextColor(white,panel);d.setCursor(5,7);
         d.print(page_==Page::Library?"MIDI LIBRARY":
                 page_==Page::Playing?"MIDI STUDIO":
-                page_==Page::Mixer?"MIDI MIXER":"MIDI CONTROLS");
+                page_==Page::Mixer?"MIDI MIXER":
+                page_==Page::Karaoke?"MIDI KARAOKE":"MIDI CONTROLS");
         d.setTextColor(accent,panel);d.setCursor(212,7);d.print("P2");
         d.fillRect(0,116,240,19,panel);
         d.setTextColor(grey,panel);d.setCursor(4,121);
         switch(page_) {
             case Page::Library:d.print("Enter play | R rescan | home");break;
-            case Page::Playing:d.print("Enter pause | M mix | H help");break;
+            case Page::Playing:d.print("Enter pause | M mix | K lyrics");break;
             case Page::Mixer:d.print("Enter mute | S solo | B back");break;
             case Page::Help:d.print("B return to player");break;
+            case Page::Karaoke:d.print("Enter pause | B player | K back");break;
         }
         auto line=[&d,bg](int x,int y,const String& s,uint16_t color=0xffff) {
             d.setTextColor(color,bg);d.setCursor(x,y);d.print(s.substring(0,38));
@@ -148,7 +159,7 @@ public:
             line(5,26,String(songCount_)+" MIDI files in /SUITE/MIDI",accent);
             if(songCount_==0) {
                 line(5,44,status_,grey);
-                line(5,57,"Copy .MID files to SD card",grey);
+                line(5,57,"Copy .MID or .KAR to SD",grey);
             } else {
                 const int top=selected_>=7?selected_-6:0;
                 for(int i=top;i<songCount_ && i<top+7;++i) {
@@ -166,12 +177,26 @@ public:
             line(5,39,"B: Library  N: Next  Z: Restart");
             line(5,51,"L: Loop  A: Auto-next  +/- speed");
             line(5,63,"[ / ] volume  , / . transpose");
-            line(5,75,"M: mixer  S: solo in mixer");
+            line(5,75,"M: mixer  K: synced karaoke");
             line(5,87,"Mixer: Fn arrows / Enter mute");
             line(5,101,"Built-in speaker, no SoundFont",grey);
             return;
         }
         if(!loaded_) {line(5,37,status_,grey);return;}
+        if(page_==Page::Karaoke) {
+            line(5,26,songs_[selected_],accent);
+            line(5,40,String(playing_?"PLAYING":"PAUSED")+
+                       "  tick "+lastTick_,playing_?green:grey);
+            line(5,56,"Synchronized MIDI lyric:",grey);
+            d.setTextColor(white,bg);
+            d.setTextSize(2);
+            d.setCursor(5,73);
+            d.print(lastLyric_.substring(0,19));
+            d.setTextSize(1);
+            if(lastLyric_.length()>19)
+                line(5,102,lastLyric_.substring(19,52),white);
+            return;
+        }
         if(page_==Page::Mixer) {
             line(5,26,String("Tracks ")+reader_.trackCount()+
                      "  Solo "+(solo_<0?String("OFF"):String(solo_+1)),accent);
@@ -239,7 +264,7 @@ private:
     int64_t due_=0,pauseAt_=0,tailDue_=0;
     uint32_t lastTick_=0,tempo_=500000;
     uint8_t numerator_=4,denominatorPower_=2,lastProgram_=0;
-    String lastNote_="--",status_;
+    String lastNote_="--",lastLyric_,status_;
     int16_t audio_[3][AudioFrames]={};
     int audioIndex_=0;
     SdSource source_;
@@ -262,7 +287,8 @@ private:
         for(size_t i=0;i<len;++i) {
             char c=dot[i];suffix[i]=(c>='A'&&c<='Z')?static_cast<char>(c+32):c;
         }
-        return strcmp(suffix,".mid")==0||strcmp(suffix,".midi")==0;
+        return strcmp(suffix,".mid")==0||strcmp(suffix,".midi")==0||
+               strcmp(suffix,".kar")==0;
     }
     void refresh(bool sdReady) {
         songCount_=0;selected_=0;
@@ -294,7 +320,7 @@ private:
                     char tmp[64];strcpy(tmp,songs_[i]);
                     strcpy(songs_[i],songs_[j]);strcpy(songs_[j],tmp);
                 }
-        status_=songCount_?"Select a song":"No .MID files found";
+        status_=songCount_?"Select a song":"No .MID/.KAR files found";
     }
     void speakerOff() {
         if(speakerOn_)M5Cardputer.Speaker.stop(0);
@@ -315,7 +341,7 @@ private:
         synth_.reset();memset(manualMute_,0,sizeof(manualMute_));
         solo_=-1;trackSelected_=0;
         tempo_=500000;numerator_=4;denominatorPower_=2;
-        lastTick_=0;lastNote_="--";lastProgram_=0;
+        lastTick_=0;lastNote_="--";lastProgram_=0;lastLyric_="";
         hasNext_=reader_.next(next_);
         if(reader_.failed()||!hasNext_) {
             source_.close();status_="Empty or invalid MIDI";return;
@@ -387,6 +413,8 @@ private:
                 break;
             case suite::smf::Kind::NoteOn:lastNote_=String(ev.a);break;
             case suite::smf::Kind::Program:lastProgram_=ev.a;break;
+            case suite::smf::Kind::Lyric:
+                lastLyric_=String(ev.text);break;
             default:break;
         }
         if(ev.kind==suite::smf::Kind::NoteOn ||
