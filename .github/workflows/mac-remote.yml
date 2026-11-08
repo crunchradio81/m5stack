@@ -1,7 +1,7 @@
 name: P22 Native macOS Cardputer remote
 on:
   push:
-    branches: [feature/cardputer-k132-p22-mac-remote]
+    branches: [feature/cardputer-k132-p22-mac-remote, feature/cardputer-k132-p25-native-mac-file-window]
   workflow_dispatch:
 concurrency:
   group: cardputer-mac-remote-${{ github.ref }}
@@ -19,12 +19,18 @@ jobs:
         run: swift test --package-path Mac
       - name: Build native SwiftUI app
         run: swift build --package-path Mac -c release
+      - name: Verify bundled Python transfer helper syntax
+        run: python3 -m py_compile Desktop/lanfile24.py
       - name: Bundle native macOS application (ad-hoc signature, not notarized)
         run: bash Mac/package-app.command
+      - name: Verify P25 bundle has actual executable and transfer helper
+        run: |
+          test -x Mac/dist/CardputerRemoteMac.app/Contents/MacOS/CardputerRemoteMac
+          test -s Mac/dist/CardputerRemoteMac.app/Contents/Resources/lanfile24.py
       - name: Save macOS application ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: CardputerRemoteMac-app-adhoc-unverified
+          name: CardputerRemoteMac-P25-app-adhoc-unverified
           path: Mac/dist/CardputerRemoteMac-macOS-unsigned.zip
           retention-days: 14
           if-no-files-found: error
