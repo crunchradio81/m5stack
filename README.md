@@ -54,7 +54,7 @@ Do not flash until the build passes. The CI workflow runs C++ host tests and a P
 | Wi-Fi Details | B/Backspace back |
 | Erase Confirmation | Y erases only WIFI.CSV; N/Backspace cancels |
 | MIDI Library | Put .MID or .MIDI files in /SUITE/MIDI on SD. Fn Up/Down select, Enter load, R rescan |
-| MIDI Player | Enter/Space/P pause/resume; N next; Z restart; L loop; +/- speed 50–200%; [ / ] speaker volume; M tracks; H help; B library |
+| MIDI Player | Enter/Space/P pause/resume; N next; Z restart; L loop; A auto-next; +/- speed 50–200%; , / . transpose; [ / ] volume; M mixer; H help; B library |
 | MIDI Mixer | Fn Up/Down select track; Enter or M mute; S solo; B player |
 | Settings | Fn+Up / Fn+Down select option; Fn+Left / Fn+Right or Enter change |
 
@@ -72,14 +72,16 @@ MIDI Studio is built for the **original Cardputer's internal speaker**, not an e
 Copy Standard MIDI Files (.mid / .midi) to the built-in microSD slot under /SUITE/MIDI/.
 Open **MIDI Studio** from the launcher, select a file and press Enter.
 
-The streaming parser supports **SMF Type 0 and 1**, up to **16 tracks**, PPQN timing,
+The player includes a live 12-note pitch-class activity meter and a bounded
+three-buffer audio queue. The streaming parser supports **SMF Type 0 and 1**, up to **16 tracks**, PPQN timing,
 running status, tempo/time signature events, program changes, note on/off, pitch bend,
 volume, expression, sustain, all-notes-off and channel 10 percussion.
 Tracks are merged chronologically. A **12-voice software synthesizer** renders
 22.05 kHz 16-bit mono PCM for the built-in speaker.
 
 Player keys: Enter/Space/P pause or resume, B browse, N next, Z restart,
-L loop, +/- speed 50–200%, brackets volume, M mixer, H help.
+L loop, A auto-next-song (loop takes priority), +/- speed 50–200%,
+comma/period transpose by semitone (-12 to +12), brackets volume, M mixer, H help.
 Mixer keys: Fn Up/Down select track, Enter/M mute, S solo, B back.
 Home/escape stops audio and closes the MIDI file.
 
