@@ -35,6 +35,23 @@ Status: **NOT EXECUTED** until tests are performed on a real stock K132.
 - [ ] Brightness changes and persists over power cycle with SD.
 - [ ] Autosave preference persists; no-SD changes remain volatile.
 
+## Wi-Fi Logger field acceptance
+- [ ] No SD: Start refuses to record, explains why, and does not silently switch to RAM.
+- [ ] FAT32 SD: Start creates /SUITE/WIFI/WIFI.CSV with exactly one CSV header.
+- [ ] Station remains disconnected; passive scans are used (no joining networks).
+- [ ] Nearby 2.4 GHz access points appear with SSID or (hidden), BSSID, dBm, channel, security.
+- [ ] Running repeated scans appends rows for a known BSSID (not deduplicated); observe changing RSSI while walking.
+- [ ] Pause stops scanning and appending; resume continues in the same session.
+- [ ] Enter on a live AP shows detail; V opens saved record viewer; Fn+Up/Down walks older/newer records.
+- [ ] Power cycle preserves WIFI.CSV; after reset, new session ID and boot-relative timestamps are distinguishable.
+- [ ] CSV quoting works for commas, quotes, empty/hidden names, and spreadsheet-formula-looking SSIDs.
+- [ ] Remove or fill SD during recording: app pauses and displays an error; do not claim a record was stored if it wasn't.
+- [ ] Interrupted write: incomplete trailing row is ignored in viewer and separated before the next append.
+- [ ] Erase, N: CSV remains unchanged; Erase, Y: only WIFI.CSV is deleted, NOTES.TXT and CONFIG.TXT survive.
+- [ ] Leave logger via Home: recording pauses, and subsequent normal Wi-Fi Scan still operates.
+- [ ] Test long survey and verify RSSI display, heap stability, battery usage, no crash or stuck scan.
+- [ ] No client sniffing, 5/6 GHz, GPS coordinates, or wall-clock timestamps claimed.
+
 ## Evidence to collect
 Record actual hardware ID, PlatformIO toolchain/library versions, CI run,
 serial logs, memory delta, SD test media, pass/fail per gate, and any firmware
