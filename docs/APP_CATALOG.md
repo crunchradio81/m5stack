@@ -52,19 +52,19 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 21. BLE Advertisement Logger — **P7 source, passive SD CSV with boot-relative time**
 22. BLE Signal Analyzer — **P7 extends passive RSSI viewer; history/graphs still planned**
 23. BLE GATT Explorer — **Planned**, user-consented device connections only
-24. Ping / latency diagnostics — **Planned**
-25. DNS Lookup — **Planned**
-26. LAN Service Discovery (mDNS/SSDP) — **Planned**
+24. Ping / latency diagnostics — **P8 source: single ICMP echo, hardware pending**
+25. DNS Lookup — **P8 source: bounded IPv4 lookup, hardware pending**
+26. LAN Service Discovery (mDNS/SSDP) — **P8 partial: mDNS HTTP-service query, SSDP planned**
 27. LAN Throughput Test — **Planned**
-28. MQTT Monitor — **Planned**
+28. MQTT Monitor — **P8 partial: trusted plaintext LAN subscriber only, no TLS or publishing**
 29. Internet Radio — **Planned**, codec/bitrate constrained
-30. Local LAN Chat — **Planned**
+30. Local LAN Chat — **P8 source: unauthenticated ASCII UDP broadcast on LAN**
 31. Weather Dashboard — **Planned**, provider/API required
-32. World Clock / NTP — **Planned**, time unavailable before sync
-33. RSS Reader — **Planned**
+32. World Clock / NTP — **P8 partial: UTC NTP only; multi-zone clock planned**
+33. RSS Reader — **P8 partial: first XML title from bounded HTTP response, full reader planned**
 34. Wikipedia Text Reader — **Planned**
 35. Lightweight Web Text Browser — **Planned**
-36. HTTP / REST Client — **Planned**
+36. HTTP / REST Client — **P8 partial: HTTP GET only, no TLS or REST methods**
 37. LAN File Transfer Server — **Planned**
 38. Smart-home MQTT Controller — **Planned**
 
@@ -201,3 +201,19 @@ See docs/P6_DEV_SYSTEM.md and docs/P6_ACCEPTANCE.md.
   apps and feature expansions are tracked in issue #3.
 
 Details: docs/P7_FIELD_MEDIA_FILES_IR.md and docs/P7_ACCEPTANCE.md.
+
+## P8 Networking & Internet collection (9 modes, 1 new image)
+
+- `NETTOOLS`: Wi-Fi Connect, DNS Lookup, genuine ICMP Ping, UTC NTP
+  Clock, plaintext HTTP GET, local mDNS HTTP discovery, local MQTT
+  subscriber, unauthenticated UDP LAN chat and minimal RSS XML title reader.
+- Requires a user-created `/SUITE/NET/NET.CFG`. The file stores
+  Wi-Fi credentials **in plaintext on SD** and is never committed to Git.
+- HTTP, MQTT and chat are plaintext and limited to non-sensitive tests on
+  trusted networks; authenticated HTTPS and TLS MQTT remain planned.
+- App binaries in SD library: **15 total**. The P8 image hosts nine modes,
+  not nine separately flashable app binaries.
+- Hardware original K132 network operations, ICMP timeouts, SD and OTA
+  return are **NOT VERIFIED**. See docs/P8_NETWORKING.md / P8_ACCEPTANCE.md.
+- The complete original 94-item suite and advanced music features remain
+  unfinished and tracked in GitHub issue #3.

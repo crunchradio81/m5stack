@@ -7,7 +7,7 @@
 The original M5Stack Cardputer K132 (8 MiB flash, no PSRAM) cannot
 execute ESP32 application binaries directly from FAT32 microSD. This
 project uses an **installed factory launcher** and a **replaceable OTA_0
-application partition**. The fourteen separately compiled app packages are
+application partition**. The fifteen separately compiled app packages are
 kept on SD and copied into the OTA slot only when selected.
 
 This differs from simply showing data files on SD or compiling every
@@ -62,6 +62,10 @@ After unpacking the CI SD app pack at the FAT32 card root:
     AUDIOLAB.BIN
     FILETOOLS.APP
     FILETOOLS.BIN
+    NETTOOLS.APP
+    NETTOOLS.BIN
+  NET/
+    NET.CFG  (user-owned plaintext Wi-Fi credentials)
   IR/
     (your validated .IRP NEC profiles)
   FIELD/
@@ -85,7 +89,7 @@ After unpacking the CI SD app pack at the FAT32 card root:
 
 The `.APP` is a bounded ASCII manifest (name, known ID, image name,
 byte size and SHA-256). The `.BIN` is the **app-only** ESP32-S3 image,
-not a merged factory/bootloader binary. Only fourteen known suite app IDs
+not a merged factory/bootloader binary. Only fifteen known suite app IDs
 are accepted in this first milestone. Any malformed manifest, wrong
 size, invalid image magic, or SHA mismatch cancels installation.
 
@@ -105,7 +109,8 @@ pio run -e cardputer_original
 pio run -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
         -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
         -e sd_devtools -e sd_system \\
-        -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools
+        -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
+        -e sd_nettools
 
 # Builds on host, creates portable SD library:
 python3 tools/package-sd-apps.py \
@@ -124,7 +129,7 @@ This first install erases previous internal data/firmware so that an
 old OTA boot selection cannot conflict with the new factory layout.
 Do not execute that erase command merely to test a source branch.
 
-Alternatively, download the fifteen CI artifacts for **this same
+Alternatively, download the sixteen CI artifacts for **this same
 commit**, including the SD app ZIP, from GitHub Actions. Prebuilt
 binaries are **unverified** until physical board acceptance.
 
@@ -136,7 +141,7 @@ binaries are **unverified** until physical board acceptance.
 4. Choose among Metronome, Music Keyboard, Wi-Fi Channels, BLE Explorer,
    Retro Arcade, Pocket Office, SD Inspector, Music Practice,
    Developer Tools, System Toolbox, IR Remote Tools, Wireless Field Lab,
-   Audio Lab, Safe SD File Tools.
+   Audio Lab, Safe SD File Tools, Networking & Internet.
 5. Enter opens a confirmation screen. Y verifies and installs; N cancels.
 6. After complete SHA check and write, the app boots from OTA_0.
 7. **Home / Escape** in a suite-managed app restarts into the factory
@@ -145,7 +150,7 @@ binaries are **unverified** until physical board acceptance.
    to the launcher.
 
 At present, exactly **one** SD firmware image is installed in the OTA
-slot at a time. All fourteen binary images remain stored on SD. Changing apps
+slot at a time. All fifteen binary images remain stored on SD. Changing apps
 requires reflashing that one OTA slot, not the factory launcher.
 This is normal, but flash erase/write cycles are finite: avoid using
 it as a rapid background app switcher.
@@ -186,3 +191,6 @@ P6 controls: docs/P6_DEV_SYSTEM.md; hardware gates: docs/P6_ACCEPTANCE.md.
 
 P7 app instructions: docs/P7_FIELD_MEDIA_FILES_IR.md;
 physical gates: docs/P7_ACCEPTANCE.md.
+
+P8 network configuration and security: docs/P8_NETWORKING.md.
+Original board validation checklist: docs/P8_ACCEPTANCE.md.

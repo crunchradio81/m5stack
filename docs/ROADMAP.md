@@ -105,3 +105,19 @@ Do not claim releases pass until the board-specific evidence exists.
   factory boot/OTA recovery.
 - Full 94-item catalog remains open, including deeper media formats,
   network clients, text tools and application quality passes.
+
+## P8 — Networking and Internet collection (source implemented)
+
+- Real SD-loaded, owner-controlled Wi-Fi connection with bounded config
+  and password never rendered on screen.
+- DNS resolution, single ICMP echo, UTC NTP clock, bounded plaintext
+  HTTP GET and first-title RSS view.
+- Local _http._tcp mDNS discovery, trusted plaintext MQTT subscription,
+  and opt-in UDP LAN chat with strict ASCII packet framing.
+- 15 SD app images + original factory build, unchanged flash layout.
+- Host tests for credentials parser, invalid ports/hosts, LAN message
+  framing and sanitization.
+- **Not implemented:** HTTPS with CA validation, secure MQTT, full RSS,
+  browser, comprehensive LAN discovery, Internet radio and WAN file serving.
+- **Gate pending:** original K132 Wi-Fi network acceptance, timeout
+  behavior, heap stability, genuine ping results, and OTA/factory recovery.

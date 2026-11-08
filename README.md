@@ -35,6 +35,7 @@ The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a residen
 | Wireless Field Lab collection (P7) | Wi-Fi Signal Graph, Survey Notebook, AP Change Monitor, BLE Log, BLE Viewer |
 | Audio Lab collection (P7) | WAV Recorder, Mono WAV Player, Level Meter, Pitch Estimate, Spectrum |
 | Safe SD File Tools collection (P7) | File Manager, Backup, Restore, Name Search, Storage Inventory |
+| Networking & Internet collection (P8) | Wi-Fi Profile, DNS, ICMP Ping, NTP, HTTP Text, mDNS, MQTT, LAN Chat, RSS title |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
@@ -49,11 +50,12 @@ bash tools/run-host-tests.sh
 pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
         -e sd_arcade -e sd_office -e sd_inspect -e sd_musiclab \\
         -e sd_devtools -e sd_system \\
-        -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools
+        -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
+        -e sd_nettools
 python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-The ZIP contains **fourteen** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB and FILETOOLS. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
+The ZIP contains **fifteen** manifest/binary pairs: METRONOME, PIANO, CHANNELS, BLE, ARCADE, OFFICE, INSPECT, MUSICLAB, DEVTOOLS, SYSTEM, IRTOOLS, WIRELESS, AUDIOLAB, FILETOOLS and NETTOOLS. The P5 collections provide 23 additional programs. See [collection controls](docs/P5_COLLECTIONS.md).
 Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
 flash the SD-app images directly over the factory launcher.
 
@@ -63,7 +65,7 @@ firmware/configuration and must use a one-time full flash erase. Do not
 execute that without a backup and consent. [Read the exact installation
 and recovery instructions](docs/SD_LAUNCHER.md).
 
-GitHub Actions compiles the factory launcher and fourteen SD app firmware images, runs portable regressions and packages fourteen manifest/binary pairs for SD.
+GitHub Actions compiles the factory launcher and fifteen SD app firmware images, runs portable regressions and packages fifteen manifest/binary pairs for SD.
 CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
 flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
@@ -236,3 +238,16 @@ and safe file operations restricted to `/SUITE/USER` and `/SUITE/BACKUP`.
 [physical acceptance gates](docs/P7_ACCEPTANCE.md). IR code examples are not
 a verified universal remote database; pitch is an estimate, not a certified
 guitar tuner. The older entire 94-item plan is still unfinished.
+
+## P8 — Networking and Internet SD collection
+
+`NETTOOLS.BIN` provides **nine user-controlled network screens**:
+Wi-Fi Connection, IPv4 DNS Lookup, single-request real ICMP Ping,
+UTC NTP Clock, bounded HTTP Text GET, local mDNS service discovery,
+plaintext LAN MQTT Subscriber, local UDP Chat, and a first-title RSS XML reader.
+A user-created `/SUITE/NET/NET.CFG` SD file supplies Wi-Fi credentials
+and optional endpoints. **The SD card stores the Wi-Fi password in plain text;
+do not commit the config or send private data over plaintext protocols.**
+No 5 GHz, GPS, HTTPS certificate skipping, cloud account or external
+attachments are implied. Full [setup and controls](docs/P8_NETWORKING.md);
+[hardware acceptance gates](docs/P8_ACCEPTANCE.md).
