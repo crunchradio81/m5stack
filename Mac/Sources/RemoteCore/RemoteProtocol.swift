@@ -86,7 +86,7 @@ public enum RemoteProtocol {
             let v = arg.split(separator: ",", omittingEmptySubsequences: false)
             guard v.count == 2,
                   let dx = Int(v[0]), let dy = Int(v[1]),
-                  abs(dx) <= 40, abs(dy) <= 40,
+                  (-40...40).contains(dx), (-40...40).contains(dy),
                   String(dx) == v[0], String(dy) == v[1] else {
                 throw Error.invalidArgument
             }
