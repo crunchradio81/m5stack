@@ -22,8 +22,10 @@ Current status: **NOT HARDWARE-TESTED**. Compiler/host-test results do not certi
 - [ ] R refresh; Fn Up/Down and Enter select/load a song.
 - [ ] Playback visibly advances; notes/chords produce audible sound with acceptable latency.
 - [ ] Pause silences promptly, resume does not jump ahead after long pause.
-- [ ] Z restart, L loop and N next work; B returns to library.
-- [ ] +/- change speed (50-200%) without accidental extreme timeouts.
+- [ ] Z restart, L loop, A auto-next and N next work; B returns to library.
+- [ ] Comma and period transpose -12 through +12 semitones without hanging notes.
+- [ ] Live 12-pitch-class note meter reflects note/chord activity.
+- [ ] +/- change speed (50-200%) without accidental extreme timeouts or catch-up jump.
 - [ ] [ / ] adjust speaker volume, moderate output avoids distortion.
 - [ ] M mixer; individual track mute, solo and 12-voice cap function without stuck notes.
 - [ ] Exit to Home stops playback and frees SD/speaker resources.
