@@ -11,6 +11,7 @@
 #include <mbedtls/sha256.h>
 #include "core/SDAppManifest.h"
 #include "core/Launcher2Core.h"
+#include "core/Theme16Runtime.h"
 
 class SDAppLauncher {
 public:
@@ -120,8 +121,14 @@ public:
     }
     void render()const {
         auto&d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,panel=0x10c4,white=0xffff,
-          cyan=0x05ff,muted=0xad55,selected=0x2673,green=0x5fe9;
+        const auto&p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+          panel=p.panel,
+          white=p.text,
+          cyan=p.accent,
+          muted=p.muted,
+          selected=p.selected,
+          green=p.good;
         d.fillScreen(bg);d.fillRect(0,0,240,23,panel);
         d.setTextColor(white,panel);d.setCursor(5,7);
         d.print("SD APP LIBRARY");

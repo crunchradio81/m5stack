@@ -12,10 +12,16 @@
 #include "MidiApp.h"
 #include "PocketApps.h"
 #include "SDAppLauncher.h"
+#include "core/Theme16Runtime.h"
 
 namespace {
-constexpr uint16_t BG=0x0841, PANEL=0x10C4, SELECTED=0x2673;
-constexpr uint16_t WHITE=0xFFFF, MUTED=0xAD55, CYAN=0x05FF, GREENISH=0x5FE9;
+const uint16_t &BG=suite::skin16::paletteRef().bg;
+const uint16_t &PANEL=suite::skin16::paletteRef().panel;
+const uint16_t &SELECTED=suite::skin16::paletteRef().selected;
+const uint16_t &WHITE=suite::skin16::paletteRef().text;
+const uint16_t &MUTED=suite::skin16::paletteRef().muted;
+const uint16_t &CYAN=suite::skin16::paletteRef().accent;
+const uint16_t &GREENISH=suite::skin16::paletteRef().good;
 constexpr int SD_CS=12, SD_SCK=40, SD_MISO=39, SD_MOSI=14;
 constexpr int EDIT_COLS=38, EDIT_ROWS=9, MAX_FILES=128;
 constexpr char NOTE_PATH[]="/SUITE/NOTES.TXT";
@@ -124,6 +130,15 @@ void saveConfig() {
     if(n<=0 || static_cast<size_t>(n)>=sizeof(config)) return;
     if(sdReady && !writeSafely(CONFIG_PATH,config,static_cast<size_t>(n)))
         notice="Settings save failed";
+    // The old P1 config remains as compatibility fallback. When a P16
+    // profile file exists, synchronize the active profile too.
+    if(sdReady && suite::skin16::validFile()) {
+        suite::skin16::Settings updated=suite::skin16::current();
+        if(!updated.brightness(brightnessIndex)) return;
+        updated.autosave(autosave);
+        if(!suite::skin16::save(updated))
+            notice="Active profile save failed";
+    }
 }
 void applyBrightness() { M5Cardputer.Display.setBrightness(BRIGHTNESS[brightnessIndex]); }
 void startStorage() {
@@ -153,6 +168,15 @@ void startStorage() {
             }
             f.close();
         }
+    }
+    // Apply valid P16 settings after reading legacy P1 values, never
+    // silently overwrite a damaged profile file.
+    if(!suite::skin16::reload()){
+        notice="P16 profile damaged; backup protected";
+    }else if(suite::skin16::validFile()){
+        const auto&profile=suite::skin16::current().active();
+        brightnessIndex=profile.brightness;
+        autosave=profile.autosave;
     }
 }
 void drawHome() {
@@ -395,6 +419,13 @@ void drawSettings() {
         M5Cardputer.Display.setTextColor(WHITE,i==settingsSelected?SELECTED:BG);
         M5Cardputer.Display.setCursor(8,y+2);
         M5Cardputer.Display.print(lines[i]);
+    }
+    if(suite::skin16::validFile()) {
+        const auto&profile=suite::skin16::current().active();
+        writeText(8,95,String("Profile: ")+profile.name+"  "+
+          suite::skin16::themeName(profile.theme),CYAN);
+    }else{
+        writeText(8,95,"Profile: P1 legacy defaults",MUTED);
     }
 }
 void render() {
