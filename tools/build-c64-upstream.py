@@ -106,6 +106,7 @@ static bool suite_return_armed=false;""")
   String path = menu();""")
     # Keep direct upstream code/board, but standardize K132 flash and partition map.
     partition=Path(__file__).resolve().parents[1]/"partitions/suite_8mb_factory.csv"
+    shutil.copy2(partition,repo/"suite_8mb_factory.csv")
     ini=repo/"platformio.ini"
     ini.write_text(f"""[platformio]
 default_envs = c64_suite
@@ -115,7 +116,7 @@ board = esp32-s3-devkitc-1
 framework = arduino
 board_build.flash_size = 8MB
 board_upload.flash_size = 8MB
-board_build.partitions = {partition.resolve()}
+board_build.partitions = suite_8mb_factory.csv
 board_upload.maximum_size = {MAX}
 monitor_speed = 115200
 build_flags =
