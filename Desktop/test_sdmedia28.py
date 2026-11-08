@@ -83,10 +83,13 @@ class SDMedia28Tests(unittest.TestCase):
                                 "source":"/dev/sdb1","fstype":"vfat","options":"rw"}]}
         with patch.object(sd.os.path, "ismount", return_value=True), \
              patch.object(sd.platform, "system", return_value="Linux"), \
-             patch.object(sd.subprocess, "run",
-                          return_value=subprocess.CompletedProcess(
-                              args=[], returncode=0,
-                              stdout=json.dumps(data).encode(), stderr=b"")):
+             patch.object(sd.subprocess, "run", side_effect=[
+                 subprocess.CompletedProcess(
+                     args=[], returncode=0,
+                     stdout=json.dumps(data).encode(), stderr=b""),
+                 subprocess.CompletedProcess(
+                     args=[], returncode=0, stdout=b"0\\n0 usb\\n", stderr=b""),
+             ]):
             self.assertEqual(sd.require_card_media(self.card),
                              self.card.stat().st_dev)
         data["filesystems"][0]["fstype"] = "ext4"
@@ -98,6 +101,14 @@ class SDMedia28Tests(unittest.TestCase):
                               stdout=json.dumps(data).encode(), stderr=b"")):
             with self.assertRaises(sd.PackError):
                 sd.require_card_media(self.card)
+
+    def test_linux_transport_refuses_internal_fat_system_disk(self):
+        for internal in ("0\\n0 sata\\n", "0\\n0 nvme\\n", "", "0\\n"):
+            with self.assertRaises(sd.PackError):
+                sd.validate_linux_transport(internal)
+        sd.validate_linux_transport("0\\n0 usb\\n")
+        sd.validate_linux_transport("0\\n1\\n")
+        sd.validate_linux_transport("1 mmc\\n")
 
     def test_full_read_only_audit_missing_changed_and_complete(self):
         good, missing, changed, details = sd.audit_card(self.archive, self.card)
