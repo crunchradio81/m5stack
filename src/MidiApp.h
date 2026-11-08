@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Original stock Cardputer K132: SD-based type 0/1 MIDI player, approximate
 // multi-voice GM family synth, no PSRAM, Grove, USB MIDI or external decoder.
 #include <Arduino.h>
@@ -18,6 +19,7 @@ public:
 
     void enter(bool sdReady) {
         exit();
+        volume_=suite::skin16::current().active().volume;
         page_=Page::Library;
         refresh(sdReady);
     }
@@ -134,8 +136,14 @@ public:
     }
     void render() const {
         auto &d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,panel=0x10C4,accent=0x05ff,white=0xffff,
-                           green=0x5fe9,grey=0xAD55,selected=0x2673;
+        const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        panel=p.panel,
+        accent=p.accent,
+        white=p.text,
+        green=p.good,
+        grey=p.muted,
+        selected=p.selected;
         d.fillScreen(bg);d.fillRect(0,0,240,23,panel);
         d.setTextColor(white,panel);d.setCursor(5,7);
         d.print(page_==Page::Library?"MIDI LIBRARY":

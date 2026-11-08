@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // P13 original K132 offline music production. Four-voice step sequencer,
 // drum machine, chord dictionary, arpeggiator, MIDI-like preset audition,
 // and a five-letter Morse trainer. No external MIDI/sound bank or PSRAM.
@@ -112,8 +113,14 @@ public:
  }
  void render(){
    dirty_=false;auto&d=M5Cardputer.Display;
-   constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,
-     cyan=0x05ff,sel=0x2673,green=0x5fe9,dim=0xad55;
+   const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        sel=p.selected,
+        green=p.good,
+        dim=p.muted;
    d.fillScreen(bg);d.fillRect(0,0,240,23,head);
    d.setTextColor(white,head);d.setCursor(5,7);
    d.print(mode_<0?"MUSIC PRODUCTION":names(mode_));
@@ -234,7 +241,7 @@ private:
    if(audioOn_)return true;
    M5Cardputer.Mic.end();
    if(!M5Cardputer.Speaker.begin()){status_="Speaker init failed";return false;}
-   M5Cardputer.Speaker.setVolume(65);
+   M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
    synth_.reset();
    for(int i=0;i<4;++i)lastNote_[i]=0;
    audioOn_=true;audioIndex_=0;return true;

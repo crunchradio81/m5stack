@@ -9,7 +9,7 @@ Statuses: **Built source** means source code exists, not necessarily merged or h
 
 ## P4 executable SD library (built source, hardware acceptance pending)
 
-A persistent factory menu launches twenty-two separately compiled SD firmware
+A persistent factory menu launches twenty-three separately compiled SD firmware
 images into a replaceable OTA slot, using owner-controlled manifests and
 SHA256 integrity checks. Only suite-managed app IDs are allowed; this is
 not authenticated firmware or guaranteed hardware recovery. See docs/SD_LAUNCHER.md.
@@ -135,9 +135,9 @@ Wi-Fi Scanner, Wi-Fi Logger, System Info, Settings (9 components).
 89. Backup / Restore Manager — **P7 partial: copy USER↔BACKUP, no overwrites or whole-SD backup**
 90. Battery Monitor — **P6 source: voltage and estimated level; hardware pending**
 91. Firmware Information / Recovery Guide — **P6 partial: firmware info only**
-92. Theme Editor — **Planned**
+92. Theme Editor — **P16 source: six shared preset palettes, preview and explicit SD save; arbitrary RGB editing not implemented**
 93. System Diagnostics — **P6 source: heap/CPU/partitions; hardware pending**
-94. Config / Settings Profiles — **Planned**
+94. Config / Settings Profiles — **P16 source: three validated named SD profiles, volume/brightness/Notes autosave and backup recovery; hardware pending**
 
 ## Development and acceptance rules
 
@@ -283,3 +283,25 @@ Launcher: docs/LAUNCHER2.md and docs/LAUNCHER2_ACCEPTANCE.md.
 
 Feature docs: docs/P12_ARCADE3.md, docs/P13_MUSIC_PRODUCTION.md,
 docs/P14_DEV_STUDIO.md, docs/P15_SECURE_WEB.md.
+
+## P16 — Themes, profiles and remaining gaps
+
+- One new `THEMES` SD image adds six curated palette presets, explicit
+  theme preview/save, three renameable profiles, active profile switching,
+  four brightness levels, 0–100 speaker volume, note autosave and
+  verified-backup recovery.
+- The factory launcher, factory MIDI player and existing suite SD screen
+  chrome share the palette read on app startup; selected audio tools
+  initialize their volume from the active profile.
+- `K132PREF2` on SD validates 384-byte maximum, profile name/value
+  bounds, checksum and uniqueness; keeps prior file as `.BAK`.
+- Existing P1 brightness/Notes autosave config remains as fallback.
+- **23 SD app image IDs** are recognized after source integration;
+  original-board acceptance is unverified. Changing profiles requires
+  relaunch/reboot for other applications to adopt the new theme.
+- Still unfinished: full sampled GM patch bank and song editor,
+  searchable multi-file notebook, secure vault, Lua, opt-in BLE GATT,
+  Internet radio, TLS MQTT/controller, complete RSS/browser, a full
+  file/backup manager, arbitrary RGB theming and physical K132 QA.
+
+See docs/P16_THEME_PROFILES.md and docs/P16_ACCEPTANCE.md.

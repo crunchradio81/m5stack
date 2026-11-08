@@ -7,7 +7,7 @@
 The original M5Stack Cardputer K132 (8 MiB flash, no PSRAM) cannot
 execute ESP32 application binaries directly from FAT32 microSD. This
 project uses an **installed factory launcher** and a **replaceable OTA_0
-application partition**. The twenty-two separately compiled app packages are
+application partition**. The twenty-three separately compiled app packages are
 kept on SD and copied into the OTA slot only when selected.
 
 This differs from simply showing data files on SD or compiling every
@@ -78,6 +78,8 @@ After unpacking the CI SD app pack at the FAT32 card root:
     DEV2.BIN
     WEBSECURE.APP
     WEBSECURE.BIN
+    THEMES.APP
+    THEMES.BIN
     LAUNCHER.CFG  (optional saved categories/favorites/history)
   NET/
     NET.CFG  (user-owned plaintext Wi-Fi credentials)
@@ -104,7 +106,7 @@ After unpacking the CI SD app pack at the FAT32 card root:
 
 The `.APP` is a bounded ASCII manifest (name, known ID, image name,
 byte size and SHA-256). The `.BIN` is the **app-only** ESP32-S3 image,
-not a merged factory/bootloader binary. Only twenty-two known suite app IDs
+not a merged factory/bootloader binary. Only twenty-three known suite app IDs
 are accepted in this first milestone. Any malformed manifest, wrong
 size, invalid image magic, or SHA mismatch cancels installation.
 
@@ -126,7 +128,7 @@ pio run -e sd_metronome -e sd_piano -e sd_channels -e sd_ble \\
         -e sd_devtools -e sd_system \\
         -e sd_irtools -e sd_wireless -e sd_audiolab -e sd_filetools \\
         -e sd_nettools -e sd_miditools -e sd_arcade2 -e sd_pocket11 \\
-        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure
+        -e sd_arcade3 -e sd_music2 -e sd_dev2 -e sd_websecure -e sd_themes
 
 # Builds on host, creates portable SD library:
 python3 tools/package-sd-apps.py \
@@ -145,7 +147,7 @@ This first install erases previous internal data/firmware so that an
 old OTA boot selection cannot conflict with the new factory layout.
 Do not execute that erase command merely to test a source branch.
 
-Alternatively, download the twenty-three CI artifacts for **this same
+Alternatively, download the twenty-four CI artifacts for **this same
 commit**, including the SD app ZIP, from GitHub Actions. Prebuilt
 binaries are **unverified** until physical board acceptance.
 
@@ -168,7 +170,7 @@ binaries are **unverified** until physical board acceptance.
    to the launcher.
 
 At present, exactly **one** SD firmware image is installed in the OTA
-slot at a time. All twenty-two binary images remain stored on SD. Changing apps
+slot at a time. All twenty-three binary images remain stored on SD. Changing apps
 requires reflashing that one OTA slot, not the factory launcher.
 This is normal, but flash erase/write cycles are finite: avoid using
 it as a rapid background app switcher.
@@ -226,3 +228,8 @@ P13 Tracker/Drums/Chords: docs/P13_MUSIC_PRODUCTION.md.
 P14 BASIC/USB/Hex: docs/P14_DEV_STUDIO.md.
 P15 HTTPS CA/manual-coordinates: docs/P15_SECURE_WEB.md.
 All require original K132 physical QA before production release.
+
+P16 shared themes, named profiles and backup recovery:
+docs/P16_THEME_PROFILES.md, docs/P16_ACCEPTANCE.md. The `THEMES`
+firmware is stored on SD; the permanent factory launcher also needs
+updating separately to render the selected palette.

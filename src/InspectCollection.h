@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Six read-only utility programs in one SD firmware image, no file writes.
 // Hex Viewer, CSV Viewer, JSON Inspector (ASCII profile), File Search,
 // ASCII Chart and bounded Storage Analyzer.
@@ -89,7 +90,14 @@ public:
     void render(){
         dirty_=false;
         auto& d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,cyan=0x05ff,sel=0x2673,dim=0xad55,green=0x5fe9;
+        const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        sel=p.selected,
+        dim=p.muted,
+        green=p.good;
         d.fillScreen(bg);d.fillRect(0,0,240,23,head);
         d.setTextColor(white,head);d.setCursor(5,7);
         d.print(mode_<0?"SD INSPECTOR":label(mode_));

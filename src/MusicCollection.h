@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Five SD-stored music-practice utilities: Morse Player, Tone Lab,
 // Drum Sequencer, Interval Ear Trainer and Tap Tempo.
 // Only internal speaker and keyboard, no external MIDI/Grove module.
@@ -10,7 +11,9 @@
 class MusicCollection {
 public:
     void begin(){
-        M5Cardputer.Speaker.begin();M5Cardputer.Speaker.setVolume(42);
+        SPI.begin(40,39,14,12);SD.begin(12,SPI,10000000);
+        suite::skin16::colors();
+        M5Cardputer.Speaker.begin();M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
         mode_=-1;menu_=0;status_="Pick a music tool";dirty_=true;
     }
     void exit(){M5Cardputer.Speaker.stop(0);running_=false;}
@@ -132,8 +135,14 @@ public:
     void render(){
         dirty_=false;
         auto& d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,head=0x10c4,sel=0x2673,
-                           white=0xffff,cyan=0x05ff,green=0x5fe9,dim=0xad55;
+        const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        sel=p.selected,
+        white=p.text,
+        cyan=p.accent,
+        green=p.good,
+        dim=p.muted;
         d.fillScreen(bg);d.fillRect(0,0,240,23,head);
         d.setTextColor(white,head);d.setCursor(5,7);
         d.print(mode_<0?"MUSIC PRACTICE":label(mode_));

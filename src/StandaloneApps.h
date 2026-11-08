@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Four separate SD-deployed binaries for original Cardputer K132.
 // They use only built-in speaker, keyboard, Wi-Fi or BLE.
 #include <Arduino.h>
@@ -14,14 +15,17 @@
 
 class StandaloneApp {
 public:
-    void begin() {
+    void begin(){
+        SPI.begin(40,39,14,12);SD.begin(12,SPI,10000000);
+        suite::skin16::colors(); // load profile after SD mount
 #if defined(SUITE_APP_METRONOME)
         M5Cardputer.Speaker.begin();
-        M5Cardputer.Speaker.setVolume(44);
+        M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
         clock_.start(micros());
 #elif defined(SUITE_APP_PIANO)
         M5Cardputer.Speaker.begin();
-        M5Cardputer.Speaker.setVolume(54);
+        volume_=suite::skin16::current().active().volume;
+        M5Cardputer.Speaker.setVolume(volume_);
 #elif defined(SUITE_APP_CHANNELS)
         WiFi.mode(WIFI_OFF);
         status_="Press S to scan";
@@ -123,8 +127,14 @@ public:
     void render() {
         dirty_=false;
         auto& d=M5Cardputer.Display;
-        constexpr uint16_t bg=0x0841,panel=0x10c4,white=0xffff,
-            cyan=0x05ff,green=0x5fe9,muted=0xad55,sel=0x2673;
+        const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        panel=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        green=p.good,
+        muted=p.muted,
+        sel=p.selected;
         d.fillScreen(bg);d.fillRect(0,0,240,23,panel);
         d.setTextColor(white,panel);d.setCursor(5,7);
 #if defined(SUITE_APP_METRONOME)

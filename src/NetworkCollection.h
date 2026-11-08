@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // P8 Networking collection for ORIGINAL K132, 2.4GHz Wi-Fi, no PSRAM.
 // Owner controls all connections; SD file holds plaintext Wi-Fi password.
 // HTTP/MQTT/LAN chat use plaintext transport; do not send secrets over them.
@@ -115,8 +116,14 @@ public:
   void render(){
     dirty_=false;
     auto&d=M5Cardputer.Display;
-    constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,cyan=0x05ff,
-       green=0x5fe9,sel=0x2673,dim=0xad55;
+    const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        green=p.good,
+        sel=p.selected,
+        dim=p.muted;
     d.fillScreen(bg);d.fillRect(0,0,240,23,head);
     d.setTextColor(white,head);d.setCursor(5,7);
     d.print(menu_<0?"NETWORK & INTERNET":label(menu_));

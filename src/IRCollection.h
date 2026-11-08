@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // Original K132 infrared TX is GPIO44. There is NO IR receiver.
 // The user supplies approved NEC command profiles on microSD.
 #define DISABLE_CODE_FOR_RECEIVER
@@ -62,8 +63,13 @@ public:
  }
  void render(){
    dirty_=false;auto&d=M5Cardputer.Display;
-   constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,cyan=0x05ff,
-      selected=0x2673,muted=0xad55;
+   const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        selected=p.selected,
+        muted=p.muted;
    d.fillScreen(bg);d.fillRect(0,0,240,23,head);
    d.setTextColor(white,head);d.setCursor(5,7);
    d.print(mode_<0?"IR TRANSMITTER":names(mode_));

@@ -196,3 +196,14 @@ Do not claim releases pass until the board-specific evidence exists.
 - All software features need real stock K132 runtime and recovery tests.
   Signed firmware, full authentication and secure credential storage
   require security design/review rather than unsupported claims.
+
+## P16 — Shared Theme Profiles (source)
+
+- Six curated palettes implemented for factory and SD collection
+  chrome; three named, switchable profiles on FAT32 SD.
+- Versioned bounded config with integrity checksum, backup recovery,
+  and separate brightness/speaker volume/Notes autosave controls.
+- New THEMES SD image extends library to 23 installable OTA firmware IDs.
+- Remaining work: per-pixel theme review, arbitrary color customization,
+  external OS accessibility verification and physical original K132
+  keyboard/display/SD persistence/OTA USB recovery tests.

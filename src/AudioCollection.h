@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Theme16Runtime.h"
 // K132 mic and speaker share GPIO43: NEVER operate them concurrently.
 // Five AUDIO SD tools: bounded WAV recorder, mono WAV player, level meter,
 // rough pitch tuner, 8-band spectrum. Built-in mic/speaker only.
@@ -76,8 +77,14 @@ public:
  }
  void render(){
    dirty_=false;auto&d=M5Cardputer.Display;
-   constexpr uint16_t bg=0x0841,head=0x10c4,white=0xffff,
-       cyan=0x05ff,green=0x5fe9,sel=0x2673,dim=0xad55;
+   const auto &p=suite::skin16::colors();
+        const uint16_t bg=p.bg,
+        head=p.panel,
+        white=p.text,
+        cyan=p.accent,
+        green=p.good,
+        sel=p.selected,
+        dim=p.muted;
    d.fillScreen(bg);d.fillRect(0,0,240,23,head);
    d.setTextColor(white,head);d.setCursor(5,7);
    d.print(mode_<0?"AUDIO LAB":names(mode_));
@@ -241,7 +248,7 @@ private:
      file_.close();status_="Needs 8/16kHz mono PCM16";return;
    }
    M5Cardputer.Mic.end();M5Cardputer.Speaker.begin();
-   M5Cardputer.Speaker.setVolume(65);
+   M5Cardputer.Speaker.setVolume(suite::skin16::current().active().volume);
    M5Cardputer.Speaker.stop(0);
    rate_=info.rate;remaining_=info.bytes;playIndex_=0;active_=true;
    status_="Playing";
