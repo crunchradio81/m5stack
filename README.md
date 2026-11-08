@@ -1,14 +1,14 @@
 # Cardputer Suite — original M5Stack Cardputer K132
 
-One native, statically linked firmware for the **stock original 2023 M5Stack Cardputer (K132 / StampS3)**. No Grove unit, external sensor, soldering or expansion board. A FAT32 microSD is optional and uses the device's **built-in slot**.
+The stock original 2023 **M5Stack Cardputer K132 / StampS3** suite has a resident factory launcher and an expanding collection of **separately compiled application firmware files stored on microSD**. No Grove unit, PSRAM, external sensor, soldering or expansion board is required.
 
-**P1–P3 source builds have passed GitHub Actions, but none are certified on a physical original Cardputer.** Back up your firmware and SD files before flashing. Some advanced hardware behavior may need further corrections after field testing.
+**P1–P3 built in CI; P4 SD launcher and four new apps are under CI verification. None are certified on a physical original Cardputer.** Back up your firmware and SD files before flashing. This P4 release changes the flash partition table and requires an explicitly approved one-time erase.
 
-## Included P1–P3 applications
+## Resident suite and P4 SD applications
 
 | Program | Capability |
 | --- | --- |
-| Home | Scrollable 12-app launcher with shared keyboard controls |
+| Home | Scrollable 13-entry factory launcher with shared keyboard controls |
 | Notes | Fixed 4 KiB ASCII document, insertion at cursor, arrows, newline, forward/backward delete, Ctrl+S; write via .NEW/.BAK |
 | Calculator | Arithmetic, parentheses, operator precedence, errors |
 | Files | Read-only browsing within /SUITE, subfolders and file selection |
@@ -20,10 +20,15 @@ One native, statically linked firmware for the **stock original 2023 M5Stack Car
 | Countdown (P3) | Editable HHMMSS duration, pause/resume/reset, visual completion notice |
 | Unit Converter (P3) | Sixteen unit conversions across five measurement categories |
 | Programmer Calculator (P3) | Binary/octal/decimal/hex values and 32-bit AND, OR, XOR, NOT and shifts |
+| SD App Library (P4) | Read manifests and install selected app from SD into separate OTA partition |
+| Metronome (SD firmware) | 30–260 BPM, accents, 2–12 beats and subdivisions using built-in speaker |
+| Music Keyboard (SD firmware) | Play 13-note layout on built-in speaker, octave and volume controls |
+| Wi-Fi Channel Analyzer (SD firmware) | Passive 2.4 GHz survey, per-channel counts, peak RSSI and heuristic recommendation |
+| BLE Explorer (SD firmware) | Passive 3-second BLE scan and up to 24 nearby advertiser summaries |
 | System Info | CPU frequency, flash, free heap, uptime and SD status |
 | Settings | Brightness presets, optional note autosave; persisted to microSD |
 
-Home, viewer, and settings are integrated in one application firmware, not separate flash images.
+The first 12 entries remain built into the factory suite, including its SD library menu. The four P4 applications are separate executable firmware images stored on SD and installed into a replaceable OTA slot when selected.
 
 ## Build and tests
 
@@ -31,16 +36,24 @@ Install [PlatformIO Core](https://docs.platformio.org/en/latest/core/installatio
 
 ~~~sh
 bash tools/run-host-tests.sh
-pio run -e cardputer_original
+pio run -e cardputer_original -e sd_metronome -e sd_piano -e sd_channels -e sd_ble
+python3 tools/package-sd-apps.py --build-root .pio/build --out Cardputer-K132-SD-App-Pack.zip
 ~~~
 
-To flash a physical **original Cardputer** via USB-C (replaces existing firmware):
+The generated ZIP contains `SUITE/APPS/{METRONOME,PIANO,CHANNELS,BLE}.{APP,BIN}`.
+Copy its `SUITE` directory to the **root of a FAT32 SD card**. Do not
+flash the SD-app images directly over the factory launcher.
 
-~~~sh
-pio run -e cardputer_original -t upload
-~~~
+**Critical:** This new branch uses a custom factory+OTA partition layout.
+Its first physical installation is destructive to previous internal
+firmware/configuration and must use a one-time full flash erase. Do not
+execute that without a backup and consent. [Read the exact installation
+and recovery instructions](docs/SD_LAUNCHER.md).
 
-Do not flash until the build passes. The CI workflow runs C++ host tests and a PlatformIO compile; neither replaces physical verification.
+GitHub Actions compiles the factory launcher and four SD apps as five
+separate jobs, then packages their binary images and manifests for SD.
+CI and host tests cannot certify real keyboard, audio, Wi-Fi, BLE or
+flash switching operation. Use [P4 hardware acceptance](docs/P4_ACCEPTANCE.md).
 
 ## Controls
 
@@ -64,6 +77,12 @@ Do not flash until the build passes. The CI workflow runs C++ host tests and a P
 | Countdown | Type HHMMSS (0130 means 1m30s), Enter set, S start/pause, R reset |
 | Unit Converter | Fn Up/Down change conversion, type number, Backspace edit, C clear |
 | Programmer Calculator | H base, O operation, T select operand, type digits, Backspace edit, R clear |
+| SD App Library | Fn Up/Down choose, R rescan, Enter confirm, Y flash selected app, N cancel |
+| Metronome (SD) | S start/stop; Fn Up/Down change BPM; M meter; D subdivisions |
+| Music Keyboard (SD) | A S D F G H J K white keys, W E T Y U sharps, Fn Up/Down octave, +/- volume |
+| Wi-Fi Channels (SD) | S scan, Fn Left/Right select channel, view AP count and strongest RSSI |
+| BLE Explorer (SD) | S scan, Fn Up/Down choose advertisement, Enter detail, Backspace list |
+| Any SD app | Escape/Home key restarts into factory launcher, only when return guard worked |
 | Settings | Fn+Up / Fn+Down select option; Fn+Left / Fn+Right or Enter change |
 
 The original keyboard's arrow and Escape functions are on the Fn layer; the code reads the official M5Cardputer key-state fields.
@@ -148,6 +167,8 @@ Fields: session ID (new on boot), milliseconds since boot, scan sequence, access
 - [Acceptance checklist](docs/ACCEPTANCE.md)
 - [Milestone roadmap](docs/ROADMAP.md)
 - [Complete 94-program application backlog](docs/APP_CATALOG.md)
+- [SD firmware launcher design, installation and recovery](docs/SD_LAUNCHER.md)
+- [P4 physical acceptance checklist](docs/P4_ACCEPTANCE.md)
 
 ## Sources
 
