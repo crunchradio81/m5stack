@@ -124,6 +124,13 @@ class SDMedia28Tests(unittest.TestCase):
             data = z.read("SUITE/APPS/PIANO.BIN")
         (apps / "PIANO.BIN").write_bytes(data)
         (apps / "piano.bin").write_bytes(b"other")
+        # Default macOS APFS is case-insensitive and cannot represent both
+        # distinct names. Ubuntu case-sensitive filesystems exercise the
+        # actual duplicate-names guard; on macOS test its case-only mismatch.
+        if len(list(apps.iterdir())) < 2:
+            with self.assertRaises(sd.PackError):
+                sd.build_plan(self.archive, self.card)
+            return
         with self.assertRaises(sd.PackError):
             sd.build_plan(self.archive, self.card)
         with self.assertRaises(sd.PackError):
