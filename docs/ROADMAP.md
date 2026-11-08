@@ -121,3 +121,15 @@ Do not claim releases pass until the board-specific evidence exists.
   browser, comprehensive LAN discovery, Internet radio and WAN file serving.
 - **Gate pending:** original K132 Wi-Fi network acceptance, timeout
   behavior, heap stability, genuine ping results, and OTA/factory recovery.
+
+## P9 — Advanced MIDI Studio / MIDI Deep Tools
+
+- Streaming SMF parser can surface bounded text and lyric meta events.
+- Resident factory MIDI player adds .KAR library support and timed K
+  lyric view during playback, without buffering full song in RAM.
+- New MIDITOOLS SD collection: Track Analyzer, bounded Piano Roll,
+  Lyrics Catalog, Favorites, Tempo Map with bounded SD playlist I/O.
+- **Gate pending:** original Cardputer audio timing, lyric sync,
+  .KAR media validation, SD file persistence and OTA return.
+- **Not yet implemented:** high-quality GM sample banks, multitrack
+  editing, full sequencer/tracker, seek and downloadable patch banks.

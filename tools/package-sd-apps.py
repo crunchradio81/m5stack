@@ -30,6 +30,7 @@ APPS = (
     ("sd_audiolab", "AUDIOLAB", "Audio Recorder and Lab"),
     ("sd_filetools", "FILETOOLS", "Safe SD File Tools"),
     ("sd_nettools", "NETTOOLS", "Network and Internet"),
+    ("sd_miditools", "MIDITOOLS", "MIDI Deep Tools"),
 )
 MAX_APP_BYTES = 0x300000
 

@@ -7,12 +7,16 @@
     defined(SUITE_APP_DEVTOOLS) || defined(SUITE_APP_SYSTEM) || \
     defined(SUITE_APP_IRTOOLS) || defined(SUITE_APP_WIRELESS) || \
     defined(SUITE_APP_AUDIOLAB) || defined(SUITE_APP_FILETOOLS) || \
-    defined(SUITE_APP_NETTOOLS)
+    defined(SUITE_APP_NETTOOLS) || \
+    defined(SUITE_APP_MIDITOOLS)
 #include <Arduino.h>
 #include <M5Cardputer.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
-#if defined(SUITE_APP_NETTOOLS)
+#if defined(SUITE_APP_MIDITOOLS)
+#include "MidiExtrasCollection.h"
+using ActiveApp=MidiExtrasCollection;
+#elif defined(SUITE_APP_NETTOOLS)
 #include "NetworkCollection.h"
 using ActiveApp=NetworkCollection;
 #elif defined(SUITE_APP_IRTOOLS)
