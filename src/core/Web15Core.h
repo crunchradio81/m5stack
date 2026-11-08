@@ -81,7 +81,8 @@ inline bool parse(const char*data,size_t n,Config&out){
    if(first){if(strcmp(line,"K132WEB1"))return false;first=false;continue;}
    if(!len)continue;
    char*sep=strchr(line,'=');
-   if(!sep)return false;*sep++=0;
+   if(!sep)return false;
+   *sep++=0;
    bool ok=false;unsigned flag=0;
    if(!strcmp(line,"WEB_HOST")){flag=1;ok=copy(next.webHost,sizeof(next.webHost),sep)&&validHost(next.webHost);}
    else if(!strcmp(line,"WEB_PATH")){flag=2;ok=copy(next.webPath,sizeof(next.webPath),sep)&&validPath(next.webPath);}
